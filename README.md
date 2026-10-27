@@ -5,7 +5,7 @@
 **Self-hosted finance tracker for Israeli bank accounts and credit cards: one dashboard, plus a phone alert for every charge.**
 
 [![CI](https://github.com/Yair-fr/DashBank/actions/workflows/ci.yml/badge.svg)](https://github.com/Yair-fr/DashBank/actions/workflows/ci.yml)
-![Node](https://img.shields.io/badge/node-%E2%89%A5%2022.13-339933?logo=node.js&logoColor=white)
+![Node](https://img.shields.io/badge/node-%E2%89%A5%2022.22.2-339933?logo=node.js&logoColor=white)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Docker-555)
 ![PWA](https://img.shields.io/badge/Android-installable%20PWA-3DDC84?logo=android&logoColor=white)
 
@@ -82,7 +82,7 @@ flowchart LR
 
 | Requirement | Why | Notes |
 |---|---|---|
-| **Node.js ≥ 22.13** | Runtime. Uses the built-in `node:sqlite` module, so there are no native builds | [nodejs.org](https://nodejs.org) LTS |
+| **Node.js ≥ 22.22.2** | Runtime. Uses the built-in `node:sqlite` module. Required by `israeli-bank-scrapers` | [nodejs.org](https://nodejs.org) LTS |
 | **A computer that stays on** | Syncs happen only while DashBank runs | A desktop, an always-on laptop, or a home server/Pi with Docker |
 | **Online-banking credentials** for each institution | DashBank logs in on your behalf | Hapoalim: user code + password. Isracard: ID + last 6 card digits + password. Cal / Max: username + password |
 | **~500 MB disk** | Chromium (downloaded automatically by `npm install`) plus data | |
@@ -269,7 +269,7 @@ The container publishes the port on the host's loopback only (`127.0.0.1:3456`).
 | `TIMEOUT` or repeated generic errors | The website is slow or was redesigned. Run `npm update israeli-bank-scrapers`. A failure screenshot is saved in `data/failures/` |
 | No notifications | Run `npm run test-notify` and check the token, chat id and topic |
 | The phone shows an old version | Close and reopen the app. The service worker updates in the background |
-| `Cannot find module 'node:sqlite'` | Upgrade Node.js to 22.13 or later |
+| `Cannot find module 'node:sqlite'` or `EBADENGINE` warning | Upgrade Node.js to 22.22.2 or later (`node -v`) |
 
 ## Limitations
 - Polling-based. See the [assumptions](#assumptions-this-project-makes) above.

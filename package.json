@@ -6,7 +6,7 @@
   "type": "module",
   "main": "src/index.js",
   "engines": {
-    "node": ">=22.13"
+    "node": ">=22.22.2"
   },
   "scripts": {
     "start": "node --disable-warning=ExperimentalWarning src/index.js",
@@ -25,5 +25,13 @@
     "express": "^5.1.0",
     "israeli-bank-scrapers": "^6.12.2",
     "node-cron": "^4.2.1"
+  },
+  "overrides": {
+    "basic-ftp": "6.2.3",
+    "zod": "4.6.7",
+    "extract-zip": "2.0.1",
+    "puppeteer": "25.16.0",
+    "puppeteer-core": "25.16.0",
+    "@puppeteer/browsers": "latest"
   }
 }
