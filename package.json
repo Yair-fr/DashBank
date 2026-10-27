@@ -1,0 +1,26 @@
+{
+  "name": "dashbank",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal finance tracker for Israeli bank & credit cards with dashboard and push notifications",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/index.js",
+    "demo": "node --disable-warning=ExperimentalWarning src/index.js --demo",
+    "setup": "node --disable-warning=ExperimentalWarning scripts/setup.js",
+    "sync": "node --disable-warning=ExperimentalWarning src/index.js --once",
+    "test-notify": "node --disable-warning=ExperimentalWarning scripts/test-notify.js",
+    "test": "node --disable-warning=ExperimentalWarning --test \"tests/**/*.test.js\""
+  },
+  "dependencies": {
+    "chart.js": "^4.5.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "israeli-bank-scrapers": "^6.12.2",
+    "node-cron": "^4.2.1"
+  }
+}
