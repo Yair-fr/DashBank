@@ -46,8 +46,8 @@ If storage is unavailable, settings apply for the current page only.
 - With motion `off`, every animation and transition duration is 0 and charts render at final state.
 
 ## UX fixes
-1. Announce the new month to screen readers when it changes (`aria-live="polite"`).
-2. Show a visible label for icon-only buttons on hover and keyboard focus.
+1. Month changes are already announced (`aria-live="polite"` on the month label), so no change is needed.
+2. Give icon-only buttons a tooltip (`title`) so sighted mouse and keyboard users see their purpose.
 3. Add the in-app theme switch (covered by the Theme setting).
 
 ## Error handling
@@ -66,4 +66,5 @@ If storage is unavailable, settings apply for the current page only.
 ## Open points
 - A Hebrew-capable dyslexia-friendly font has not been chosen. Until one is verified, Hebrew
   uses the system font with the dyslexia spacing.
-- Contrast figures are targets to verify with the test suite, not yet measured.
+- The high-contrast palette was checked numerically at 7:1 or better for text tokens, and the test suite enforces it.
+- The phone status-bar colour (`theme-color` meta) still follows the device scheme, not a forced in-app theme.
