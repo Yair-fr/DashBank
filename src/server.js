@@ -76,6 +76,51 @@ function parseTxnQuery(q) {
   };
 }
 
+const CSV_PAGE = 1000;
+const CSV_COLUMNS = [
+  ['date', 'תאריך', 'Date'],
+  ['processedDate', 'תאריך חיוב', 'Charge date'],
+  ['description', 'תיאור', 'Description'],
+  ['amount', 'סכום', 'Amount'],
+  ['currency', 'מטבע', 'Currency'],
+  ['originalAmount', 'סכום מקורי', 'Original amount'],
+  ['originalCurrency', 'מטבע מקורי', 'Original currency'],
+  ['category', 'קטגוריה', 'Category'],
+  ['source', 'מקור', 'Source'],
+  ['accountNumber', 'חשבון', 'Account'],
+  ['status', 'סטטוס', 'Status'],
+  ['installment', 'תשלום', 'Installment'],
+  ['memo', 'הערה', 'Note'],
+];
+const NUMERIC = new Set(['amount', 'originalAmount']);
+const CSV_STATUS = { he: { pending: 'ממתין', completed: 'נקלט' }, en: { pending: 'Pending', completed: 'Posted' } };
+
+function csvCell(value, key) {
+  if (value == null) return '';
+  let s = String(value);
+  // Neutralise spreadsheet formulas in free-text fields (CSV injection); numbers keep their sign.
+  if (!NUMERIC.has(key) && /^[=+\-@\t\r]/.test(s)) s = `'${s}`;
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+/** Rows → CSV text with a UTF-8 BOM so Excel opens Hebrew correctly. */
+export function transactionsCsv(rows, lang = 'he') {
+  const col = lang === 'en' ? 2 : 1;
+  const lines = [CSV_COLUMNS.map((c) => csvCell(c[col], 'header')).join(',')];
+  for (const t of rows) {
+    const rec = {
+      ...t,
+      date: String(t.date || '').slice(0, 10),
+      processedDate: t.processedDate ? String(t.processedDate).slice(0, 10) : '',
+      source: lang === 'en' ? t.source : (SOURCE_LABELS[t.source] || t.source),
+      installment: t.installmentTotal ? `${t.installmentNumber ?? '?'}/${t.installmentTotal}` : '',
+      status: CSV_STATUS[lang][t.status] || t.status,
+    };
+    lines.push(CSV_COLUMNS.map(([key]) => csvCell(rec[key], key)).join(','));
+  }
+  return `\uFEFF${lines.join('\r\n')}\r\n`;
+}
+
 /**
  * Build the Express app. Does not listen — callers bind it (on 127.0.0.1).
  * syncer: { run(): Promise, isRunning(): boolean } | null
@@ -126,6 +171,30 @@ export function createApp({ db, syncer = null, config = {} }) {
 
   app.get('/api/transactions', (req, res) => {
     res.json(db.listTransactions(parseTxnQuery(req.query)));
+  });
+
+  // Same filters as /api/transactions, but every matching row (no paging), as an Excel-friendly CSV.
+  app.get('/api/transactions.csv', (req, res) => {
+    const filter = parseTxnQuery(req.query);
+    const lang = req.query.lang === 'en' ? 'en' : 'he';
+    const rows = [];
+    for (let offset = 0; ; offset += CSV_PAGE) {
+      const page = db.listTransactions({ ...filter, limit: CSV_PAGE, offset });
+      rows.push(...page.rows);
+      if (page.rows.length < CSV_PAGE || rows.length >= page.total) break;
+    }
+    const name = `dashbank-${filter.from ? filter.from.slice(0, 7) : 'all'}.csv`;
+    res.set({
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="${name}"`,
+      'Cache-Control': 'no-store',
+    });
+    res.send(transactionsCsv(rows, lang));
+  });
+
+  // Non-sensitive settings the static pages (legal, login) need before any sign-in.
+  app.get('/api/public-config', (req, res) => {
+    res.json({ accessibilityContact: config.accessibilityContact || null });
   });
 
   app.post('/api/sync', (req, res) => {

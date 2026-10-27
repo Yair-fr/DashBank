@@ -3,11 +3,13 @@
  * - /api/* GET: network-first, falling back to the last cached response, which is
  *   marked with an `X-DashBank-Offline: 1` header so the page can show an offline pill.
  * All URLs are relative to the SW scope so the app works behind a reverse proxy. */
-const VERSION = 'v1';
+const VERSION = 'v2';
 const SHELL_CACHE = `dashbank-shell-${VERSION}`;
 const API_CACHE = 'dashbank-api';
 const SHELL = [
-  './', 'index.html', 'styles.css', 'app.js', 'vendor/chart.umd.js', 'manifest.webmanifest',
+  './', 'index.html', 'styles.css', 'app.js', 'i18n.js', 'locales/he.json', 'locales/en.json',
+  'vendor/chart.umd.js', 'manifest.webmanifest',
+  'legal/privacy.html', 'legal/terms.html', 'legal/accessibility.html', 'legal/legal.js',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png',
 ];
 
@@ -70,6 +72,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   const scopePath = new URL(self.registration.scope).pathname;
   const rel = url.pathname.startsWith(scopePath) ? url.pathname.slice(scopePath.length) : url.pathname;
+  if (rel === 'api/transactions.csv') return; // downloads go straight to the network, never cached
   if (rel.startsWith('api/')) {
     event.respondWith(networkFirst(request));
   } else {

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="he" dir="rtl" data-i18n-page-title="legal.privacy_title">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f4f5f8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0e14" media="(prefers-color-scheme: dark)">
+  <title>מדיניות פרטיות · DashBank</title>
+  <link rel="icon" href="../icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../i18n.js"></script>
+  <script src="legal.js" defer></script>
+</head>
+<body class="legal-page">
+  <a class="skip-link" href="#main" data-i18n="app.skip">דילוג לתוכן הראשי</a>
+  <header class="topbar">
+    <div class="topbar-inner legal-bar">
+      <a class="brand" href="../">
+        <img class="brand-mark" src="../icons/icon.svg" alt="" width="32" height="32">
+        <span class="brand-name" lang="en">DashBank</span>
+      </a>
+      <div class="sync">
+        <a class="btn btn-ghost legal-back" href="../" data-i18n="legal.back">חזרה ללוח הבקרה</a>
+        <button class="lang-btn" id="lang-btn" type="button" title="החלפת שפה" data-i18n-title="lang.title">
+          <span aria-hidden="true" id="lang-short" lang="en" data-i18n="lang.toggle_short">EN</span>
+          <span class="sr-only" id="lang-name" lang="en" data-i18n="lang.toggle_label">English</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="legal" tabindex="-1">
+    <article class="legal-doc" lang="he" dir="rtl" data-legal-lang="he">
+      <h1>מדיניות פרטיות</h1>
+      <p class="legal-meta">עודכן לאחרונה: 27 באוקטובר 2026 · <strong>אינו מהווה ייעוץ משפטי</strong></p>
+
+      <h2>בקצרה</h2>
+      <p>DashBank היא מערכת שמותקנת ורצה על המחשב שלך (self-hosted). אין שרת מרכזי, אין חברה שמקבלת את הנתונים ואין פרסומות או מעקב. מי שהתקין את המערכת הוא שאחראי על הנתונים שבה.</p>
+
+      <h2>אילו נתונים נשמרים</h2>
+      <ul>
+        <li><strong>פרטי כניסה לבנק ולכרטיסי האשראי</strong> — מוצפנים בכספת (AES-256-GCM, מפתח שנגזר בעזרת scrypt מסיסמת הכספת שלך).</li>
+        <li><strong>תנועות</strong> — תאריך, סכום, מטבע, שם בית העסק, קטגוריה, סטטוס, תשלומים, וארבע הספרות האחרונות של החשבון או הכרטיס.</li>
+        <li><strong>יתרות חשבון</strong> ו<strong>יומן סנכרון</strong> (מתי רץ סנכרון, כמה תנועות חדשות, הודעות שגיאה).</li>
+        <li><strong>פרטי התחברות למערכת</strong>, אם הכניסה מופעלת — שם משתמש, גיבוב (hash) של הסיסמה, סוד האימות הדו-שלבי, וכתובת הדוא״ל של Google אם הופעלה כניסה עם Google.</li>
+        <li><strong>בדפדפן או בנייד</strong> — בחירת השפה ועותק של הנתונים האחרונים לצפייה ללא חיבור (מטמון של ה-PWA), ועוגיית התחברות אם הכניסה מופעלת. אין עוגיות פרסום או ניתוח.</li>
+      </ul>
+
+      <h2>איפה הנתונים נשמרים</h2>
+      <p>בתיקייה <code lang="en">data/</code> במחשב שמריץ את המערכת: קובץ SQLite לתנועות וקובץ כספת מוצפן לפרטי הכניסה. השרת מאזין רק לכתובת המקומית <code lang="en">127.0.0.1</code>. גישה מהנייד נעשית דרך Tailscale, רשת פרטית מוצפנת בין המכשירים שלך.</p>
+
+      <h2>צדדים שלישיים</h2>
+      <ul>
+        <li><strong>אתרי הבנק וחברות האשראי</strong> — המערכת נכנסת אליהם בשמך, עם פרטי הכניסה שלך, כדי לקרוא תנועות (ספריית הקוד הפתוח israeli-bank-scrapers).</li>
+        <li><strong>Telegram</strong> — אם הוגדר, כל תנועה חדשה נשלחת כהודעה דרך Bot API. ההודעות אינן מוצפנות מקצה לקצה ונשמרות אצל Telegram.</li>
+        <li><strong>ntfy</strong> — אם הוגדר, ההתראות עוברות דרך שרת ntfy (ברירת המחדל: ntfy.sh הציבורי). כל מי שיודע את שם ה-topic יכול לקרוא אותן, ולכן יש לבחור שם ארוך ואקראי או להשתמש בטוקן או בשרת פרטי.</li>
+        <li><strong>Google</strong> — רק אם הופעלה כניסה עם Google: נשלחת בקשה להרשאות <code lang="en">openid email profile</code> בלבד, וטוקנים של Google אינם נשמרים.</li>
+      </ul>
+      <p>תוכן התראה כולל סכום, שם בית העסק, קטגוריה, מקור וארבע ספרות אחרונות. עם <code lang="en">NOTIFY_PRIVACY=1</code> כותרת ההתראה (מה שמופיע במסך הנעילה) מציגה רק סכום וקטגוריה, בלי שם בית העסק.</p>
+
+      <h2>כמה זמן הנתונים נשמרים</h2>
+      <p>במחשב שלך — עד שתמחק אותם. במערכות של Telegram ו-ntfy — לפי מדיניות השמירה של כל שירות (ב-ntfy.sh הודעות נשמרות במטמון לזמן מוגבל).</p>
+
+      <h2>ייצוא ומחיקה</h2>
+      <ul>
+        <li><strong>ייצוא</strong>: כפתור „ייצוא CSV” במסך התנועות מוריד את התנועות המסוננות לקובץ שנפתח באקסל.</li>
+        <li><strong>מחיקת פרטי כניסה לבנק</strong>: <code lang="en">npm run setup</code> ← הסרת חשבון.</li>
+        <li><strong>מחיקת כל הנתונים</strong>: עצור את המערכת ומחק את התיקייה <code lang="en">data/</code>.</li>
+        <li><strong>בנייד</strong>: הסר את האפליקציה או נקה את נתוני האתר בדפדפן; מחק את היסטוריית השיחה עם הבוט ב-Telegram.</li>
+      </ul>
+
+      <h2>אחריות ויצירת קשר</h2>
+      <p>המערכת מיועדת לשימוש אישי. אם היא מעבדת גם נתונים של אנשים אחרים (למשל בני משפחה), מי שמפעיל אותה עשוי להיחשב „בעל השליטה במאגר” לפי חוק הגנת הפרטיות, התשמ״א-1981 (כולל תיקון 13), ויש לקבל ייעוץ משפטי. לכל שאלה על הנתונים: <span data-a11y-contact>בעל המערכת</span>.</p>
+    </article>
+
+    <article class="legal-doc" lang="en" dir="ltr" data-legal-lang="en">
+      <h1>Privacy notice</h1>
+      <p class="legal-meta">Last updated: 27 October 2026 · <strong>Not legal advice</strong></p>
+
+      <h2>In short</h2>
+      <p>DashBank is self-hosted: it is installed and runs on your own computer. There is no central server, no company that receives your data, and no ads or tracking. Whoever installed the system is responsible for the data in it.</p>
+
+      <h2>What data is stored</h2>
+      <ul>
+        <li><strong>Bank and credit-card credentials</strong> — encrypted in a vault (AES-256-GCM, key derived with scrypt from your vault passphrase).</li>
+        <li><strong>Transactions</strong> — date, amount, currency, merchant name, category, status, installments, and the last four digits of the account or card.</li>
+        <li><strong>Account balances</strong> and a <strong>sync log</strong> (when a sync ran, how many new transactions, error messages).</li>
+        <li><strong>Sign-in data</strong>, if sign-in is enabled — username, a password hash, the two-factor secret, and your Google email address if Google sign-in is enabled.</li>
+        <li><strong>In your browser or phone</strong> — your language choice, a copy of the latest data for offline viewing (the PWA cache), and a session cookie if sign-in is enabled. No advertising or analytics cookies.</li>
+      </ul>
+
+      <h2>Where it is stored</h2>
+      <p>In the <code>data/</code> folder on the computer that runs DashBank: a SQLite file for transactions and an encrypted vault file for credentials. The server listens on <code>127.0.0.1</code> only. Phone access goes through Tailscale, an encrypted private network between your own devices.</p>
+
+      <h2>Third parties</h2>
+      <ul>
+        <li><strong>Bank and card company websites</strong> — DashBank logs in to them on your behalf, with your credentials, to read transactions (the open-source israeli-bank-scrapers library).</li>
+        <li><strong>Telegram</strong> — if configured, each new transaction is sent as a message through the Bot API. Messages are not end-to-end encrypted and are stored by Telegram.</li>
+        <li><strong>ntfy</strong> — if configured, notifications pass through an ntfy server (default: the public ntfy.sh). Anyone who knows the topic name can read them, so use a long random topic, an access token, or a self-hosted server.</li>
+        <li><strong>Google</strong> — only if Google sign-in is enabled: only the <code>openid email profile</code> scopes are requested, and Google tokens are not stored.</li>
+      </ul>
+      <p>A notification contains the amount, merchant name, category, source and last four digits. With <code>NOTIFY_PRIVACY=1</code> the notification title (what your lock screen shows) has only the amount and category, never the merchant name.</p>
+
+      <h2>Retention</h2>
+      <p>On your computer — until you delete it. At Telegram and ntfy — according to each service's retention policy (ntfy.sh caches messages for a limited time).</p>
+
+      <h2>Export and deletion</h2>
+      <ul>
+        <li><strong>Export</strong>: the “Export CSV” button on the transactions screen downloads the filtered transactions as a file that opens in Excel.</li>
+        <li><strong>Delete bank credentials</strong>: <code>npm run setup</code> → remove account.</li>
+        <li><strong>Delete all data</strong>: stop DashBank and delete the <code>data/</code> folder.</li>
+        <li><strong>On your phone</strong>: uninstall the app or clear the site data in your browser; delete the chat history with your Telegram bot.</li>
+      </ul>
+
+      <h2>Responsibility and contact</h2>
+      <p>DashBank is meant for personal use. If it also processes other people's data (family members, for example), whoever runs it may be a “database controller” under Israel's Privacy Protection Law 5741-1981 (including Amendment 13) and should get legal advice. Questions about the data: <span data-a11y-contact>The system owner</span>.</p>
+    </article>
+  </main>
+
+  <footer class="foot">
+    <nav class="foot-links" aria-label="מידע משפטי" data-i18n-label="app.legal_nav">
+      <a href="privacy.html" aria-current="page" data-i18n="footer.privacy">מדיניות פרטיות</a>
+      <a href="terms.html" data-i18n="footer.terms">תנאי שימוש</a>
+      <a href="accessibility.html" data-i18n="footer.accessibility">הצהרת נגישות</a>
+    </nav>
+  </footer>
+</body>
+</html>
