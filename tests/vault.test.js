@@ -13,22 +13,22 @@ test('round trip', () => {
   assert.deepEqual(decryptVault(buf, 'pass'), obj);
 });
 
-test('wrong passphrase throws Hebrew error', () => {
+test("wrong passphrase throws a clear error", () => {
   const buf = encryptVault(obj, 'pass');
-  assert.throws(() => decryptVault(buf, 'nope'), { message: 'סיסמת כספת שגויה או קובץ פגום' });
+  assert.throws(() => decryptVault(buf, 'nope'), { message: 'Wrong vault passphrase or corrupted file' });
 });
 
 test('tampered byte throws', () => {
   const buf = encryptVault(obj, 'pass');
   buf[buf.length - 1] ^= 1;
-  assert.throws(() => decryptVault(buf, 'pass'), /כספת/);
+  assert.throws(() => decryptVault(buf, 'pass'), /passphrase/);
 });
 
 test('bad magic and short buffers throw', () => {
   const buf = encryptVault(obj, 'pass');
   buf[0] = 0x58;
-  assert.throws(() => decryptVault(buf, 'pass'), /כספת/);
-  assert.throws(() => decryptVault(Buffer.alloc(10), 'pass'), /כספת/);
+  assert.throws(() => decryptVault(buf, 'pass'), /passphrase/);
+  assert.throws(() => decryptVault(Buffer.alloc(10), 'pass'), /passphrase/);
 });
 
 test('writeVault/readVault file round trip with 0600 mode', () => {

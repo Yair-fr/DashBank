@@ -122,7 +122,7 @@ test('failed account logs run, notifies error, and other accounts continue', asy
   const report = await syncer.run();
   assert.deepEqual(report.results.map((r) => [r.ok, r.newCount]), [[false, 0], [true, 2]]);
   assert.equal(report.results[0].error, 'bad password');
-  assert.deepEqual(notifier.calls.error, [{ label: 'ישראכרט שלי', message: 'סיסמה שגויה — עדכן אותה ב-npm run setup' }]);
+  assert.deepEqual(notifier.calls.error, [{ label: 'ישראכרט שלי', message: 'Wrong password — update it with npm run setup' }]);
   const failed = db.lastSyncRuns().find((r) => r.source === 'isracard');
   assert.equal(failed.ok, false);
   assert.equal(failed.error, 'bad password');

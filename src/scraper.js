@@ -19,7 +19,7 @@ function redact(message, credentials = {}) {
 
 // Human-readable Hebrew explanations for israeli-bank-scrapers error types.
 export const ERROR_MESSAGES_HE = {
-  INVALID_PASSWORD: 'סיסמה שגויה — עדכן אותה ב-npm run setup',
+  INVALID_PASSWORD: 'Wrong password — update it with npm run setup',
   CHANGE_PASSWORD: 'המוסד דורש להחליף סיסמה — היכנס ידנית לאתר',
   ACCOUNT_BLOCKED: 'החשבון חסום — היכנס ידנית לאתר',
   TIMEOUT: 'האתר לא הגיב בזמן — ננסה שוב בסנכרון הבא',

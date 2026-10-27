@@ -16,7 +16,7 @@ async function getPassphrase() {
   const { createPrompt } = await import('./prompt.js');
   const prompt = createPrompt();
   try {
-    return await prompt.askHidden('סיסמת כספת: ');
+    return await prompt.askHidden('Vault passphrase: ');
   } finally {
     prompt.close();
   }
@@ -27,7 +27,7 @@ async function startServer(db, syncer) {
   const app = createApp({ db, syncer, config });
   return new Promise((resolve, reject) => {
     const server = app.listen(config.port, config.host, () => {
-      console.log(`DashBank פועל: http://127.0.0.1:${config.port}`);
+      console.log(`DashBank is running: http://127.0.0.1:${config.port}`);
       resolve(server);
     });
     server.on('error', reject);
@@ -61,16 +61,16 @@ async function runDemo() {
     isRunning: () => false,
   };
   const server = await startServer(db, syncer);
-  console.log('מצב הדגמה: נתונים לדוגמה בלבד, ללא סנכרון וללא התראות');
+  console.log('Demo mode: sample data only, no syncing and no notifications');
   onShutdown(() => { server.close(); db.close(); });
 }
 
 async function runReal() {
   if (!fs.existsSync(config.vaultPath)) {
-    fail('לא נמצאה כספת פרטי גישה. הרץ קודם: npm run setup');
+    fail('No credentials vault found. Run first: npm run setup');
   }
   const passphrase = await getPassphrase();
-  if (!passphrase) fail('נדרשת סיסמת כספת (או הגדר DASHBANK_PASSPHRASE בקובץ .env)');
+  if (!passphrase) fail('A vault passphrase is required (or set DASHBANK_PASSPHRASE in the .env file)');
 
   const { readVault } = await import('./vault.js');
   let vault;
@@ -79,7 +79,7 @@ async function runReal() {
   } catch (e) {
     fail(e.message);
   }
-  if (!vault.accounts?.length) fail('הכספת ריקה. הוסף חשבונות עם: npm run setup');
+  if (!vault.accounts?.length) fail('The vault is empty. Add accounts with: npm run setup');
 
   const db = openDb(config.dbPath);
   const { createNotifier } = await import('./notify/index.js');
@@ -91,7 +91,7 @@ async function runReal() {
   if (config.once) {
     const report = await syncer.run();
     for (const r of report.results) {
-      console.log(`${r.ok ? '✓' : '✗'} ${r.label}: ${r.ok ? `${r.newCount} תנועות חדשות` : r.error}`);
+      console.log(`${r.ok ? '✓' : '✗'} ${r.label}: ${r.ok ? `${r.newCount} new transactions` : r.error}`);
     }
     db.close();
     process.exit(report.results.every((r) => r.ok) ? 0 : 1);

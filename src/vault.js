@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const MAGIC = Buffer.from('DBV1', 'latin1');
 const SALT = 16, IV = 12, TAG = 16;
-const BAD = 'סיסמת כספת שגויה או קובץ פגום';
+const BAD = 'Wrong vault passphrase or corrupted file';
 
 function deriveKey(passphrase, salt) {
   return crypto.scryptSync(String(passphrase), salt, 32, { N: 2 ** 15, r: 8, p: 1, maxmem: 64 * 1024 * 1024 });
