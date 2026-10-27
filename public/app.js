@@ -323,7 +323,7 @@
         onHover: (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
         scales: {
           x: { reverse: true, grid: { display: false }, border: { display: false } },
-          y: { position: 'right', beginAtZero: true, border: { display: false }, grid: { color: css('--grid') }, ticks: { callback: (v) => compact(v), maxTicksLimit: 5, padding: 8 } },
+          y: { display: !months.every((r) => !r.income && !r.expense), position: 'right', beginAtZero: true, border: { display: false }, grid: { color: css('--grid') }, ticks: { callback: (v) => compact(v), maxTicksLimit: 5, padding: 8 } },
         },
         plugins: {
           ...base.plugins,
@@ -452,7 +452,7 @@
         ...base,
         scales: {
           x: { reverse: true, offset: false, grid: { display: false }, border: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 14, align: 'inner' } },
-          y: { position: 'right', beginAtZero: true, border: { display: false }, grid: { color: css('--grid') }, ticks: { callback: (v) => compact(v), maxTicksLimit: 5, padding: 8 } },
+          y: { display: Boolean(o.daily.length || o.prevDaily.length), position: 'right', beginAtZero: true, border: { display: false }, grid: { color: css('--grid') }, ticks: { callback: (v) => compact(v), maxTicksLimit: 5, padding: 8 } },
         },
         plugins: {
           ...base.plugins,
@@ -972,7 +972,8 @@
       busy = true;
       ptr.classList.add('refreshing');
       ptr.style.transform = ''; ptr.style.opacity = '';
-      try { await refreshAll(); } finally {
+      // Keep the spinner up briefly so the gesture always gets visible feedback.
+      try { await Promise.all([refreshAll(), new Promise((r) => setTimeout(r, 700))]); } finally {
         ptr.classList.remove('refreshing', 'armed');
         busy = false;
       }
@@ -991,6 +992,10 @@
   // ---------- offline / service worker ----------
   function setOffline(off) {
     $('offline-pill').hidden = !off;
+    document.body.classList.toggle('offline', off);
+    const btn = $('sync-btn');
+    if (off) btn.disabled = true;
+    else if (state.overview) btn.disabled = Boolean(state.overview.syncing) || !state.overview.canSync;
   }
 
   function registerSw() {
