@@ -1,224 +1,332 @@
-# DashBank 💳📊
+<div align="center">
 
-**מעקב אחרי כל שקל: חשבון בנק, כרטיסי אשראי והוראות קבע, בדאשבורד אחד, עם התראה לנייד על כל חיוב.**
-*Track every shekel across your Israeli bank account and credit cards, with a live dashboard and a phone notification for every charge. English summary at the bottom.*
+# DashBank
+
+**Self-hosted finance tracker for Israeli bank accounts and credit cards: one dashboard, plus a phone alert for every charge.**
+
+[![CI](https://github.com/Yair-fr/DashBank/actions/workflows/ci.yml/badge.svg)](https://github.com/Yair-fr/DashBank/actions/workflows/ci.yml)
+![Node](https://img.shields.io/badge/node-%E2%89%A5%2022.13-339933?logo=node.js&logoColor=white)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Docker-555)
+![PWA](https://img.shields.io/badge/Android-installable%20PWA-3DDC84?logo=android&logoColor=white)
+
+<img src="docs/screenshots/desktop-light.png" alt="DashBank desktop dashboard" width="860">
+
+</div>
 
 ---
 
-## איך זה עובד
+## Contents
+- [What it does](#what-it-does)
+- [Screenshots](#screenshots)
+- [How it works](#how-it-works)
+- [Prerequisites and assumptions](#prerequisites-and-assumptions)
+- [Quick start (demo, 2 minutes)](#quick-start-demo-2-minutes)
+- [Installation](#installation)
+- [Daily use](#daily-use)
+- [Phone access (Android app)](#phone-access-android-app)
+- [Configuration reference](#configuration-reference)
+- [Deployment options](#deployment-options)
+- [Security model](#security-model)
+- [Troubleshooting](#troubleshooting)
+- [Limitations](#limitations)
+- [Legal and compliance](#legal-and-compliance)
+- [Development](#development)
 
-```
-המחשב שלך (דלוק)                                     הנייד שלך
-┌───────────────────────────────────────────┐      ┌──────────────────────┐
-│ כל 30 דק': כניסה אוטומטית לאתרי            │      │ 🔔 Telegram / ntfy    │
-│ הפועלים · ישראכרט · כאל · מקס              │─────▶│ "💳 ₪84.90 · שופרסל"   │
-│   ↓                                       │      ├──────────────────────┤
-│ זיהוי עסקאות חדשות → קטגוריה → הוראות קבע  │◀────▶│ 📱 אפליקציית DashBank │
-│   ↓                                       │ VPN  │   (PWA דרך Tailscale) │
-│ SQLite מקומי + דאשבורד (127.0.0.1 בלבד)     │      └──────────────────────┘
-└───────────────────────────────────────────┘
-```
+---
 
-- **אין API ציבורי לבנקים בישראל.** DashBank משתמש בספריית הקוד הפתוח [`israeli-bank-scrapers`](https://github.com/eshaham/israeli-bank-scrapers), שנכנסת לאתר הבנק עם שם המשתמש והסיסמה שלך, בדיוק כמו שאתה נכנס בעצמך.
-- **ההתראות לא מיידיות.** המערכת בודקת כל 30 דקות (אפשר לשנות), ועסקאות אשראי מופיעות באתרי החברות לפעמים רק אחרי כמה שעות.
-- **הכל נשאר אצלך.** הסיסמאות נשמרות מוצפנות (AES-256-GCM), הנתונים נשמרים בקובץ מקומי, והשרת פתוח רק למחשב עצמו.
+## What it does
 
-## מה יש בפנים
-
-| תכונה | פירוט |
+| | |
 |---|---|
-| 🏦 מקורות | בנק הפועלים, ישראכרט, כאל, מקס. נתמכים גם לאומי, דיסקונט, מזרחי, אמקס ועוד |
-| 📊 דאשבורד | יתרה, הכנסות, הוצאות, תזרים נטו, גרף 12 חודשים, פילוח קטגוריות, הוצאה מצטברת יומית |
-| 🔁 הוראות קבע ומנויים | זיהוי אוטומטי (אותו בית עסק, סכום ±15%, מחזור חודשי/שבועי/שנתי) ותאריך החיוב הבא |
-| 🧮 בלי ספירה כפולה | החיוב החודשי של כרטיס האשראי בעו"ש לא נספר שוב כהוצאה |
-| 🔔 התראות | Telegram ו-ntfy על כל חיוב חדש. בסנכרון הראשון נשלח סיכום אחד, לא מאות הודעות |
-| 🔐 אבטחה | כספת סיסמאות מוצפנת, השרת מאזין רק ל-127.0.0.1, כותרות אבטחה ו-CSP |
-| 📱 אנדרואיד | PWA שמותקנת למסך הבית ונפתחת גם בלי חיבור |
-| 🧪 בדיקות | `npm test` (node:test). אין קריאות רשת אמיתיות בבדיקות |
+| **Aggregates** | Bank Hapoalim, Isracard, Cal (Visa Cal) and Max. Leumi, Discount, Mizrahi-Tefahot, Amex and the other institutions supported by [`israeli-bank-scrapers`](https://github.com/eshaham/israeli-bank-scrapers) work too. |
+| **Alerts** | A Telegram and/or ntfy push notification for every new charge or deposit. The first sync sends one summary instead of hundreds of messages. |
+| **Visualises** | Balance, monthly income/expense/net with month-over-month change, a 12-month trend, category breakdown, cumulative daily spend, and a searchable transaction list. |
+| **Detects** | Standing orders, subscriptions and recurring income, with the next expected charge date and your fixed monthly cost. |
+| **Avoids double counting** | Card-bill settlements in the bank account are excluded from spending, because each purchase is already counted on the card. |
+| **Runs anywhere you own** | A Windows/macOS/Linux PC with auto-start, or Docker on a home server or Raspberry Pi. It installs on Android as an app and works offline. |
+| **Keeps data local** | Credentials are AES-256-GCM encrypted. Data lives in a local SQLite file. The server listens on `127.0.0.1` only. |
 
----
+## Screenshots
 
-## התקנה (10 דקות)
+| Desktop (dark) | Mobile overview | Transactions | Transaction detail | Standing orders |
+|---|---|---|---|---|
+| <img src="docs/screenshots/desktop-dark.png" width="320"> | <img src="docs/screenshots/mobile-overview.png" width="160"> | <img src="docs/screenshots/mobile-transactions.png" width="160"> | <img src="docs/screenshots/mobile-detail.png" width="160"> | <img src="docs/screenshots/mobile-recurring.png" width="160"> |
 
-### 1. דרישות
-- **Node.js 22.13 ומעלה**: https://nodejs.org (גרסת LTS)
-- Git, או הורדה של ה-ZIP מ-GitHub
+> All screenshots use the built-in demo dataset (`npm run demo`) and contain no real data. Regenerate them with `npm run screenshots`.
 
-### 2. הורדה והתקנה
+## How it works
+
+```mermaid
+flowchart LR
+  subgraph PC["Your computer (always on)"]
+    CRON["Scheduler<br/>every 30 min"] --> SCR["israeli-bank-scrapers<br/>(headless Chromium)"]
+    SCR -->|"new transactions"| DB[("SQLite<br/>data/dashbank.db")]
+    DB --> CAT["Categorise +<br/>detect recurring"]
+    CAT --> NOTIFY["Notifier"]
+    DB --> API["Dashboard server<br/>127.0.0.1:3456"]
+    VAULT[["Encrypted vault<br/>data/vault.enc"]] --> SCR
+  end
+  BANKS["Bank & card websites"] <--> SCR
+  NOTIFY -->|push| TG["Telegram / ntfy app"]
+  API <-->|"Tailscale (private VPN, HTTPS)"| PHONE["Android PWA"]
+```
+
+1. On a schedule, DashBank logs in to each institution's website with **your own credentials**, exactly as you would in a browser. There is no public banking API for consumers in Israel.
+2. Transactions are normalised and de-duplicated with a content hash. A pending transaction that later settles updates in place.
+3. New rows are categorised by Hebrew/English merchant keywords, and recurring patterns are re-detected.
+4. Each new row triggers a notification. The dashboard reads the same database.
+
+## Prerequisites and assumptions
+
+### You need
+
+| Requirement | Why | Notes |
+|---|---|---|
+| **Node.js ≥ 22.13** | Runtime. Uses the built-in `node:sqlite` module, so there are no native builds | [nodejs.org](https://nodejs.org) LTS |
+| **A computer that stays on** | Syncs happen only while DashBank runs | A desktop, an always-on laptop, or a home server/Pi with Docker |
+| **Online-banking credentials** for each institution | DashBank logs in on your behalf | Hapoalim: user code + password. Isracard: ID + last 6 card digits + password. Cal / Max: username + password |
+| **~500 MB disk** | Chromium (downloaded automatically by `npm install`) plus data | |
+| **Telegram** and/or **ntfy** on your phone | Push notifications | Both are free |
+| **Tailscale** (optional) | Secure phone access to the dashboard | Free for personal use |
+
+### Assumptions this project makes
+- **Single owner.** One person tracks their own accounts. It is not a multi-tenant service.
+- **Near-real-time, not real-time.** Alerts arrive after the next sync (default every 30 minutes). Card issuers sometimes publish a charge hours after the swipe. If you need instant alerts at the point of sale, your card issuer's own app is faster.
+- **No two-factor SMS logins.** Institutions that demand an SMS code on every login can't be synced unattended. Hapoalim, Isracard, Cal and Max currently work with password-only logins (this can change).
+- **Website changes break scrapers.** When a bank redesigns its site, syncing that institution fails until `israeli-bank-scrapers` publishes an update (`npm update israeli-bank-scrapers`).
+- **Amounts in ILS.** Foreign-currency purchases are shown in their original currency too, but totals use the charged ILS amount.
+- **Israel time zone** (`Asia/Jerusalem`) for dates and notifications.
+
+## Quick start (demo, 2 minutes)
+
+Try the full interface with realistic fake data. No credentials needed.
+
 ```bash
 git clone https://github.com/Yair-fr/DashBank.git
 cd DashBank
 npm install
-```
-
-### 3. קודם לראות איך זה נראה (מצב דמו, בלי סיסמאות)
-```bash
 npm run demo
 ```
-פתח את http://127.0.0.1:3456 ותראה דאשבורד עם 6 חודשים של נתונים מדומים.
 
-### 4. הגדרת התראות לנייד
+Open **http://127.0.0.1:3456**. The demo database is rebuilt on every start and nothing is sent anywhere.
 
-**Telegram (מומלץ):**
-1. ב-Telegram, פתח שיחה עם **@BotFather** ושלח `/newbot`. שמור את ה-token שתקבל.
-2. שלח הודעה כלשהי לבוט החדש שלך.
-3. פתח שיחה עם **@userinfobot** כדי לקבל את ה-chat id שלך.
+## Installation
 
-**ntfy (אופציונלי):**
-1. התקן את האפליקציה [ntfy](https://play.google.com/store/apps/details?id=io.heckel.ntfy) מ-Google Play.
-2. בחר שם topic ארוך ואקראי, למשל `dashbank-8f3k2m9x7q1w4z6b`, והירשם אליו באפליקציה.
-3. ⚠️ ב-ntfy.sh הציבורי כל מי שיודע את שם ה-topic יכול לקרוא את ההודעות. לכן שם ארוך ואקראי הוא חובה.
-
-עכשיו:
+### 1. Install
 ```bash
-cp .env.example .env        # ב-Windows:  copy .env.example .env
-```
-ערוך את `.env` ומלא את `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` ו/או `NTFY_TOPIC`. אחר כך הרץ:
-```bash
-npm run test-notify         # אמורה להגיע לנייד הודעת בדיקה
+git clone https://github.com/Yair-fr/DashBank.git
+cd DashBank
+npm install
+cp .env.example .env          # Windows: copy .env.example .env
 ```
 
-### 5. הכנסת חשבונות הבנק והאשראי (מוצפן)
+### 2. Set up phone notifications
+<details open>
+<summary><b>Telegram (recommended)</b></summary>
+
+1. In Telegram, message **@BotFather**, send `/newbot`, and copy the **bot token**.
+2. Send any message to your new bot. Bots can't message you first.
+3. Message **@userinfobot** to get your numeric **chat id**.
+4. In `.env`, set `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID`.
+</details>
+
+<details>
+<summary><b>ntfy (alternative or additional)</b></summary>
+
+1. Install [ntfy for Android](https://play.google.com/store/apps/details?id=io.heckel.ntfy).
+2. Pick a **long random topic name**, for example `dashbank-` followed by 20 random characters, and subscribe to it in the app.
+3. In `.env`, set `NTFY_TOPIC`. Optionally set `NTFY_TOKEN` for an access-controlled server.
+
+> ⚠️ Anyone who knows a topic name on the public `ntfy.sh` server can read its messages. Use a long random name, an access token, or a self-hosted ntfy server.
+</details>
+
+Verify:
+```bash
+npm run test-notify
+```
+A sample "💳 ₪123.45 · בדיקת התראה" (test notification) message should arrive on your phone, and the command prints which channels succeeded.
+
+### 3. Add your accounts to the encrypted vault
 ```bash
 npm run setup
 ```
-- בפעם הראשונה תבחר **סיסמת כספת** (master passphrase). בלעדיה אי אפשר לפתוח את הסיסמאות לבנק, אז אל תשכח אותה.
-- הוסף חשבון לכל מוסד:
+- First you choose a **vault passphrase**. It encrypts your banking credentials (AES-256-GCM, scrypt key derivation). **If you lose it, you have to delete the vault and re-enter everything.**
+- Add one entry per institution. Password fields are hidden as you type.
 
-| מוסד | מה צריך |
-|---|---|
-| הפועלים | קוד משתמש + סיסמה |
-| ישראכרט | ת"ז + 6 ספרות אחרונות של הכרטיס + סיסמה |
-| כאל | שם משתמש + סיסמה |
-| מקס | שם משתמש + סיסמה |
-
-### 6. הפעלה
+### 4. Run
 ```bash
 npm start
 ```
-- המערכת שואלת את סיסמת הכספת, מריצה סנכרון ראשון (טעינת היסטוריה של 6 חודשים, יכול לקחת כמה דקות) ושולחת לנייד סיכום אחד.
-- מעכשיו היא בודקת כל 30 דקות, וכל חיוב חדש מגיע לנייד.
-- הדאשבורד זמין ב-http://127.0.0.1:3456.
+On first start DashBank asks for the vault passphrase, then:
+- Downloads up to 6 months of history (`MONTHS_BACK`). This can take a few minutes per institution.
+- Sends **one summary notification** per institution.
+- From then on, syncs every 30 minutes and notifies you about each new transaction.
 
-סנכרון חד-פעמי בלי להשאיר שרת פתוח: `npm run sync`
+Open **http://127.0.0.1:3456**.
 
-### 7. הפעלה אוטומטית כשהמחשב נדלק
+### 5. (Optional) Start automatically at login
 ```bash
-npm run autostart              # Windows / macOS / Linux
-npm run autostart -- --remove  # ביטול
+npm run autostart              # Windows Task Scheduler / macOS LaunchAgent / Linux systemd --user
+npm run autostart -- --remove  # undo
 ```
-> הפעלה אוטומטית דורשת `DASHBANK_PASSPHRASE` בתוך `.env`, כי אף אחד לא יהיה שם כדי להקליד אותה. עשה את זה **רק** במחשב שהוא שלך בלבד, ועם הצפנת דיסק פעילה (BitLocker ב-Windows, FileVault ב-Mac).
+Unattended start needs `DASHBANK_PASSPHRASE` in `.env`, because nobody is there to type it. Only do this on a computer used by you alone, with full-disk encryption on (BitLocker or FileVault).
 
----
+## Daily use
 
-## 📱 התקנה על אנדרואיד (PWA + Tailscale)
+| Task | How |
+|---|---|
+| See this month at a glance | **Overview** tab: balance, income, expenses, net, pending card charges |
+| Browse another month | The ‹ › arrows next to the month name |
+| Find a transaction | **Transactions** tab: search by text, filter by income/expense/source |
+| Drill into a category | Click a slice in the category chart to filter the transaction list |
+| See details of a charge | Tap a transaction to open its detail sheet (date, charge date, card, installments, original currency) |
+| Review fixed costs | **Recurring** tab: standing orders, subscriptions, recurring income, and the next expected date |
+| Sync immediately | The **Sync now** button, or pull down to refresh on mobile |
+| One-off sync from the terminal | `npm run sync` |
 
-השרת פתוח רק למחשב עצמו, וזה בכוונה. כדי שהנייד יגיע אליו בצורה מאובטחת, משתמשים ב-**Tailscale**: VPN פרטי וחינמי בין המכשירים שלך, בלי לפתוח פורטים לאינטרנט.
+### Commands
 
-1. התקן Tailscale [על המחשב](https://tailscale.com/download) ועל הנייד ([Google Play](https://play.google.com/store/apps/details?id=com.tailscale.ipn)), והתחבר באותו חשבון בשני המכשירים.
-2. בלוח הניהול של Tailscale, בלשונית **DNS**, הפעל **MagicDNS** ו-**HTTPS Certificates**.
-3. במחשב:
+| Command | Purpose |
+|---|---|
+| `npm run demo` | Dashboard with generated demo data |
+| `npm run setup` | Add, list or remove institutions in the encrypted vault |
+| `npm start` | Dashboard + scheduled sync + notifications |
+| `npm run sync` | Sync once and exit |
+| `npm run test-notify` | Send a test notification |
+| `npm run autostart` | Start at login (`-- --remove` to undo) |
+| `npm run auth-setup` | Create the dashboard login (password + authenticator app) |
+| `npm run screenshots` | Regenerate `docs/screenshots/` (requires Playwright) |
+| `npm test` | Run the test suite |
+
+## Phone access (Android app)
+
+The server deliberately listens on `127.0.0.1` only. To reach it from your phone **without exposing it to the internet**, use [Tailscale](https://tailscale.com), a free WireGuard-based private network between your own devices.
+
+1. Install Tailscale on the computer and on the phone ([Google Play](https://play.google.com/store/apps/details?id=com.tailscale.ipn)), and sign in with the same account on both.
+2. In the Tailscale admin console, under **DNS**, enable **MagicDNS** and **HTTPS Certificates**.
+3. On the computer:
    ```bash
    tailscale serve --bg 3456
    ```
-   תקבל כתובת בסגנון `https://my-pc.tail1234.ts.net`.
-4. בנייד, פתח את הכתובת ב-Chrome, לחץ על ⋮ ובחר **"התקנת אפליקציה"** (או "הוספה למסך הבית").
-5. יופיע אייקון DashBank במסך הבית. האפליקציה נפתחת במסך מלא, ובלי חיבור היא מציגה את הנתונים האחרונים.
+   It prints your private HTTPS address, for example `https://my-pc.tail1234.ts.net`.
+4. On the phone, open that address in Chrome, then choose **⋮ → Install app**.
 
----
+You get a home-screen icon and a full-screen app with a bottom tab bar, pull-to-refresh and dark mode. When you're offline it shows the most recent data.
 
-## 🐳 שרת ביתי / Raspberry Pi (Docker)
+## Configuration reference
+
+All settings live in `.env`. See `.env.example`.
+
+| Variable | Default | Description |
+|---|---|---|
+| `PORT` | `3456` | Dashboard port |
+| `SYNC_INTERVAL_MINUTES` | `30` | Minutes between syncs (minimum 10, to stay polite to the banks) |
+| `MONTHS_BACK` | `6` | History loaded on an institution's first sync (1–12) |
+| `NOTIFY_MIN_AMOUNT` | `0` | Only alert for charges at or above this amount (ILS) |
+| `DASHBANK_PASSPHRASE` | *(empty)* | Vault passphrase. If empty, you are prompted at start |
+| `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` | | Telegram channel |
+| `NTFY_SERVER` / `NTFY_TOPIC` / `NTFY_TOKEN` | `https://ntfy.sh` | ntfy channel |
+| `AUTH_SECRET` | | 64-hex-character secret that signs login sessions |
+| `PUBLIC_URL` | | Your Tailscale HTTPS URL (needed for Google sign-in) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `AUTH_ALLOWED_EMAILS` | | Optional Google sign-in, restricted to the listed emails |
+| `HOST` | `127.0.0.1` | Bind address. Change it only inside Docker |
+
+## Deployment options
+
+| Option | Best for | Steps |
+|---|---|---|
+| **PC + auto-start** | Most people | [Installation](#installation), then `npm run autostart` |
+| **Docker** | Home server, NAS, Raspberry Pi (arm64) | See below |
+
 ```bash
-cp .env.example .env    # מלא כולל DASHBANK_PASSPHRASE
-docker compose run --rm dashbank node scripts/setup.js   # הוספת חשבונות
+cp .env.example .env                                     # include DASHBANK_PASSPHRASE
+docker compose run --rm dashbank node scripts/setup.js   # add institutions
 docker compose up -d
-tailscale serve --bg 3456
+tailscale serve --bg 3456                                # phone access
+```
+The container publishes the port on the host's loopback only (`127.0.0.1:3456`). It ships with system Chromium and Hebrew fonts and keeps its data in `./data`.
+
+## Security model
+
+| Threat | Mitigation |
+|---|---|
+| Credentials stolen from disk | AES-256-GCM vault with a scrypt-derived key (N=2¹⁵). File mode `0600`. Atomic writes |
+| Credentials leaking into logs or alerts | Structured logger never receives credentials. Scraper errors are scrubbed of credential values |
+| Dashboard reachable from the network | Binds `127.0.0.1`. Remote access only through Tailscale (device-authenticated WireGuard) |
+| Unauthorised dashboard access | Password (scrypt) + TOTP authenticator codes with replay protection, single-use recovery codes, rate limiting, signed `HttpOnly; SameSite=Strict` session cookies, CSRF header check. Optional Google sign-in validates the ID-token signature, audience, nonce and an email allow-list |
+| XSS / clickjacking | Strict Content-Security-Policy, `X-Frame-Options: DENY`. All data is rendered through `textContent` |
+| Third-party exposure | Only notification text leaves your machine, via Telegram and/or ntfy |
+
+**Your responsibilities:** full-disk encryption, an OS login password, keeping `.env` private, and backing up `data/` securely.
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `סיסמת כספת שגויה או קובץ פגום` (wrong vault passphrase or corrupted file) | Wrong passphrase. If it's lost, delete `data/vault.enc` and run `npm run setup` again |
+| Sync fails with `INVALID_PASSWORD` | Your bank password changed. Update it with `npm run setup` |
+| `CHANGE_PASSWORD` / `ACCOUNT_BLOCKED` | Log in to the institution's website manually once and complete the prompt shown there |
+| `TIMEOUT` or repeated generic errors | The website is slow or was redesigned. Run `npm update israeli-bank-scrapers`. A failure screenshot is saved in `data/failures/` |
+| No notifications | Run `npm run test-notify` and check the token, chat id and topic |
+| The phone shows an old version | Close and reopen the app. The service worker updates in the background |
+| `Cannot find module 'node:sqlite'` | Upgrade Node.js to 22.13 or later |
+
+## Limitations
+- Polling-based. See the [assumptions](#assumptions-this-project-makes) above.
+- Institutions that require SMS OTP on every login can't be synced unattended.
+- Categorisation is keyword-based and covers common Israeli merchants. Anything unmatched is shown as *Other*.
+- The service worker requires HTTPS on the phone (provided by `tailscale serve`).
+
+## Legal and compliance
+
+> **Read before connecting real accounts.** This is not legal or financial advice.
+
+- **Bank terms of service.** Automated login with your own credentials (screen scraping) may breach your bank's or card issuer's online-service terms. For personal use, that is a risk you accept knowingly.
+- **Do not offer DashBank as a service to others.** Operating it for other people's accounts makes you a database controller under the Israeli Privacy Protection Law (Amendment 13), and may require a licence under the Financial Information Service Law, 5782-2021. Use a licensed Open Banking provider for any commercial version.
+- **Third parties.** Notification contents pass through Telegram and/or ntfy.
+- **Accessibility.** The UI targets WCAG 2.1 AA. Israeli accessibility regulations (IS 5568) apply when the service is offered to the public.
+- Full analysis: [`docs/legal/compliance-check.md`](docs/legal/compliance-check.md).
+
+Provided **as-is, without warranty**.
+
+## Development
+
+```bash
+npm test                 # node:test suite; no network access, scrapers and HTTP are faked
+npm run demo             # manual UI testing
+npm run screenshots      # visual check across desktop/mobile/light/dark
 ```
 
----
-
-## ⚙️ הגדרות (`.env`)
-
-| משתנה | ברירת מחדל | משמעות |
-|---|---|---|
-| `PORT` | 3456 | פורט הדאשבורד |
-| `SYNC_INTERVAL_MINUTES` | 30 | כל כמה דקות לבדוק (מינימום 10) |
-| `MONTHS_BACK` | 6 | כמה חודשי היסטוריה לטעון בפעם הראשונה (עד 12) |
-| `NOTIFY_MIN_AMOUNT` | 0 | להתריע רק על חיובים מעל סכום מסוים |
-| `DASHBANK_PASSPHRASE` | (ריק) | סיסמת הכספת. אם ריק, המערכת שואלת בכל הפעלה |
-| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | (ריק) | ערוץ Telegram |
-| `NTFY_SERVER`, `NTFY_TOPIC`, `NTFY_TOKEN` | ntfy.sh | ערוץ ntfy |
-
-## 🛠️ פקודות
-
-| פקודה | מה היא עושה |
-|---|---|
-| `npm run demo` | דאשבורד עם נתונים מדומים |
-| `npm run setup` | ניהול חשבונות בכספת המוצפנת |
-| `npm start` | שרת + סנכרון כל X דקות + התראות |
-| `npm run sync` | סנכרון חד-פעמי ויציאה |
-| `npm run test-notify` | הודעת בדיקה לנייד |
-| `npm run autostart` | הפעלה אוטומטית כשמתחברים למחשב |
-| `npm test` | כל הבדיקות |
-
-## 🧯 פתרון תקלות
-
-| בעיה | פתרון |
-|---|---|
-| "סיסמת כספת שגויה" | הסיסמה לא נכונה. אם שכחת אותה, מחק את `data/vault.enc` והרץ שוב `npm run setup` |
-| סנכרון נכשל עם `INVALID_PASSWORD` | הסיסמה לבנק השתנתה. עדכן אותה ב-`npm run setup` |
-| `CHANGE_PASSWORD` / `ACCOUNT_BLOCKED` | היכנס פעם אחת ידנית לאתר המוסד וטפל בבקשה שמופיעה שם |
-| `TIMEOUT` | האתר איטי או שהמבנה שלו השתנה. נסה `npm update israeli-bank-scrapers`. צילום מסך של הכשל נשמר ב-`data/failures/` |
-| אין התראות | הרץ `npm run test-notify` ובדוק את ה-token, את ה-chat id ואת שם ה-topic |
-
-## ⚖️ משפטי ופרטיות — חשוב לקרוא
-- **תנאי השימוש של הבנק:** כניסה אוטומטית עם הסיסמה שלך עלולה להפר את תנאי השימוש של הבנק או של חברת האשראי. **בשימוש אישי זו החלטה שלך.** אל תפיץ את המערכת לאחרים ואל תמכור אותה כשירות בלי ייעוץ משפטי ובלי ספק Open Banking מורשה (חוק שירות מידע פיננסי, התשפ"ב-2021).
-- **פרטיות:** תוכן ההתראות עובר דרך Telegram ו-ntfy, שהם צדדים שלישיים.
-- **הפרויקט אינו ייעוץ פיננסי או משפטי, ומסופק כמות שהוא (AS-IS).**
-- בדיקת התאימות המלאה: [`docs/legal/compliance-check.md`](docs/legal/compliance-check.md)
-
-## 🗂️ מבנה הפרויקט
 ```
 src/
-  index.js        נקודת כניסה: שרת + cron + סנכרון
-  sync.js         תזמור הסנכרון: scraper → db → קטגוריות → התראות
-  scraper.js      עטיפה של israeli-bank-scrapers (כשל של חשבון אחד לא מפיל את האחרים)
-  db.js           SQLite (node:sqlite), dedupe עם hash
-  normalize.js    נרמול עסקאות
-  categorize.js   כללי קטגוריות בעברית
-  recurring.js    זיהוי הוראות קבע ומנויים
-  vault.js        כספת מוצפנת AES-256-GCM + scrypt
-  notify/         Telegram, ntfy, פורמט ההודעות
-  server.js       Express API + קבצים סטטיים
-  demo.js         נתוני דמו דטרמיניסטיים
-public/           הדאשבורד (RTL, מצב כהה, PWA)
-scripts/          setup, test-notify, autostart
-tests/            בדיקות node:test
-docs/             spec, תוכנית מימוש, בדיקת תאימות
+  index.js          entry point: server + scheduler + sync
+  sync.js           orchestration: scrape → normalise → store → categorise → notify
+  scraper.js        israeli-bank-scrapers wrapper (timeouts, isolated failures, redaction)
+  db.js             SQLite store (node:sqlite), de-duplication, aggregates
+  normalize.js      transaction normalisation + content hash
+  categorize.js     keyword categoriser (Hebrew + English)
+  recurring.js      standing order / subscription detection
+  vault.js          encrypted credential vault
+  notify/           Telegram, ntfy, message formatting
+  auth/             password, TOTP, sessions, Google OIDC, rate limiting
+  server.js         Express API + static PWA
+  demo.js           deterministic demo dataset
+public/             dashboard PWA (vanilla JS, Chart.js, service worker)
+scripts/            setup, auth-setup, test-notify, autostart, screenshots
+tests/              node:test suites
+docs/               design spec, implementation plan, compliance check, screenshots
 ```
 
-## 🚧 בפיתוח
-- [ ] כניסה עם סיסמה + אימות דו-שלבי (TOTP) / Google
-- [ ] ממשק בעברית ובאנגלית
-- [ ] התאמה מלאה ל-WCAG 2.1 AA + הצהרת נגישות, מדיניות פרטיות ותנאי שימוש בתוך האפליקציה
-- [ ] ייצוא CSV
+**Stack:** Node.js 22 (ESM, `node:sqlite`, `node:test`, `node:crypto`) · Express 5 · Chart.js 4 · node-cron · israeli-bank-scrapers. No front-end build step and no native modules.
+
+### Status
+| Area | State |
+|---|---|
+| Sync, storage, categories, recurring detection, notifications | ✅ Done |
+| Dashboard + Android PWA (offline, dark mode, motion) | ✅ Done |
+| Sign-in backend (password + TOTP, Google OIDC) | ✅ Done, 🔄 connecting to the UI |
+| English / Hebrew UI, WCAG 2.1 AA, in-app legal pages, CSV export | 🔄 In progress |
 
 ---
 
-## English summary
-
-DashBank is a **self-hosted** personal finance tracker for Israeli accounts (Bank Hapoalim, Isracard, Cal, Max and others).
-
-- **How it works:** every 30 minutes it logs in to each institution's website with your own credentials, using [`israeli-bank-scrapers`](https://github.com/eshaham/israeli-bank-scrapers). New transactions are stored in a local SQLite file, categorised, and checked for standing orders and subscriptions. Each new charge triggers a Telegram and/or ntfy notification.
-- **Dashboard:** runs on `127.0.0.1` and installs on Android as a PWA through `tailscale serve`.
-- **Credentials:** encrypted at rest with AES-256-GCM and a scrypt-derived key.
-
-```bash
-npm install
-npm run demo          # try it with fake data
-npm run setup         # add bank/card credentials to the encrypted vault
-npm start             # dashboard + scheduled sync + notifications
-npm test
-```
-
-**Caveats:** this is polling, not real time. Automated login may breach your bank's online terms. Not financial or legal advice; provided as-is. See `docs/legal/compliance-check.md`.
+<sub>© DashBank. All rights reserved. Not affiliated with any bank or card issuer. Bank and card names are trademarks of their respective owners.</sub>
