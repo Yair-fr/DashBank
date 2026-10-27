@@ -12,6 +12,7 @@
     "start": "node --disable-warning=ExperimentalWarning src/index.js",
     "demo": "node --disable-warning=ExperimentalWarning src/index.js --demo",
     "setup": "node --disable-warning=ExperimentalWarning scripts/setup.js",
+    "auth-setup": "node --disable-warning=ExperimentalWarning scripts/auth-setup.js",
     "sync": "node --disable-warning=ExperimentalWarning src/index.js --once",
     "test-notify": "node --disable-warning=ExperimentalWarning scripts/test-notify.js",
     "test": "node --disable-warning=ExperimentalWarning --test \"tests/**/*.test.js\"",

@@ -3,6 +3,10 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
+function list(value) {
+  return String(value ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+}
+
 function int(value, fallback) {
   const n = Number.parseInt(value ?? '', 10);
   return Number.isFinite(n) && n >= 0 ? n : fallback;
@@ -25,6 +29,13 @@ export function loadConfig(env = process.env, argv = process.argv) {
     dataDir,
     dbPath: path.join(dataDir, demo ? 'demo.db' : 'dashbank.db'),
     vaultPath: path.join(dataDir, 'vault.enc'),
+    auth: {
+      secret: env.AUTH_SECRET || '',
+      allowedEmails: list(env.AUTH_ALLOWED_EMAILS),
+      google: { clientId: env.GOOGLE_CLIENT_ID || '', clientSecret: env.GOOGLE_CLIENT_SECRET || '' },
+      publicUrl: (env.PUBLIC_URL || '').trim().replace(/\/+$/, ''),
+      filePath: path.join(dataDir, 'auth.json'),
+    },
     demo,
     once: argv.includes('--once'),
   };
