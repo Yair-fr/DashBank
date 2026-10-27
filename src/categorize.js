@@ -24,7 +24,7 @@ export const RULES = [
   { category: 'חינוך', patterns: ['אוניברסיטה', 'בר-אילן', 'בר אילן', 'שכר לימוד', 'קורס', 'udemy', 'coursera'] },
   { category: 'פנאי', patterns: ['סינמה', 'יס פלאנט', 'cinema', 'הופעה', 'כושר', 'holmes', 'גו אקטיב'] },
   { category: 'משיכת מזומן', patterns: ['משיכה', 'כספומט', 'atm'] },
-  { category: 'עמלות', patterns: ['עמלה', 'דמי ניהול', 'ריבית'] },
+  { category: 'עמלות', patterns: ['עמלה', 'עמלת', 'דמי ניהול', 'ריבית'] },
   { category: 'הוראות קבע', patterns: ['הוראת קבע', 'הו"ק'] },
 ];
 
