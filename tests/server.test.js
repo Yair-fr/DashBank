@@ -184,6 +184,47 @@ test('/ serves HTML and /vendor/chart.umd.js is served', async () => {
   assert.ok((await res.text()).length > 1000);
 });
 
+test('manifest served as application/manifest+json with PWA fields', async () => {
+  const res = await fetch(`${srv.base}/manifest.webmanifest`);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-type'), /^application\/manifest\+json/);
+  const m = await res.json();
+  assert.equal(m.name, 'DashBank');
+  assert.equal(m.short_name, 'DashBank');
+  assert.equal(m.lang, 'he');
+  assert.equal(m.dir, 'rtl');
+  assert.equal(m.display, 'standalone');
+  assert.equal(m.start_url, '/');
+  assert.ok(m.icons.some((i) => i.sizes === '192x192'));
+  assert.ok(m.icons.some((i) => i.sizes === '512x512' && i.purpose === 'maskable'));
+  for (const icon of m.icons) {
+    const r = await fetch(`${srv.base}/${icon.src}`);
+    assert.equal(r.status, 200, icon.src);
+  }
+});
+
+test('sw.js served with Service-Worker-Allowed and no-cache', async () => {
+  const res = await fetch(`${srv.base}/sw.js`);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-type'), /javascript/);
+  assert.equal(res.headers.get('service-worker-allowed'), '/');
+  assert.equal(res.headers.get('cache-control'), 'no-cache');
+});
+
+test('trusts loopback reverse proxy (tailscale serve) only', () => {
+  const app = createApp({ db, config: {} });
+  const trust = app.get('trust proxy fn');
+  assert.equal(trust('127.0.0.1', 0), true);
+  assert.equal(trust('8.8.8.8', 0), false);
+});
+
+test('index.html uses only relative asset URLs', async () => {
+  const html = await (await fetch(`${srv.base}/`)).text();
+  const urls = [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(urls.length > 3);
+  for (const u of urls) assert.ok(!u.startsWith('/') && !/^https?:/.test(u), u);
+});
+
 test('unknown /api route → 404 JSON; thrown errors → 500 {error:"internal"}', async () => {
   let res = await fetch(`${srv.base}/api/nope`);
   assert.equal(res.status, 404);

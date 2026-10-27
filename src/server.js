@@ -84,6 +84,8 @@ export function createApp({ db, syncer = null, config = {} }) {
   const app = express();
   app.disable('x-powered-by');
   app.set('query parser', 'simple');
+  // Phone access goes through `tailscale serve` (HTTPS reverse proxy on localhost).
+  app.set('trust proxy', 'loopback');
 
   app.use((req, res, next) => {
     res.set({
@@ -141,7 +143,15 @@ export function createApp({ db, syncer = null, config = {} }) {
     res.sendFile(CHART_JS, (err) => err && next(err));
   });
 
-  app.use(express.static(PUBLIC_DIR, { index: 'index.html', maxAge: 0 }));
+  app.use(express.static(PUBLIC_DIR, {
+    index: 'index.html',
+    maxAge: 0,
+    setHeaders(res, filePath) {
+      const base = path.basename(filePath);
+      if (base === 'sw.js') res.set({ 'Service-Worker-Allowed': '/', 'Cache-Control': 'no-cache' });
+      else if (base.endsWith('.webmanifest')) res.type('application/manifest+json');
+    },
+  }));
 
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {

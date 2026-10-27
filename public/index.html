@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f4f5f8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0e14" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="DashBank">
+  <meta name="application-name" content="DashBank">
+  <meta name="format-detection" content="telephone=no">
+  <title>DashBank</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="vendor/chart.umd.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body class="intro" data-tab="overview">
+  <header class="topbar" id="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img class="brand-mark" src="icons/icon.svg" alt="" width="32" height="32">
+        <span class="brand-name">DashBank</span>
+        <span class="nav-title" id="nav-title" aria-hidden="true">סקירה</span>
+      </div>
+
+      <nav class="month-nav" id="month-nav" aria-label="בחירת חודש">
+        <button class="icon-btn" id="month-prev" type="button" aria-label="החודש הקודם">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+        <span class="month-label" id="month-label" aria-live="polite">&nbsp;</span>
+        <button class="icon-btn" id="month-next" type="button" aria-label="החודש הבא">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+      </nav>
+
+      <div class="sync">
+        <span class="offline-pill" id="offline-pill" hidden>
+          <span class="dot err" aria-hidden="true"></span>לא מקוון · מציג נתונים אחרונים
+        </span>
+        <div class="sync-status" id="sync-status" title="">
+          <span class="dot" id="sync-dot" aria-hidden="true"></span>
+          <span id="sync-text">טוען…</span>
+        </div>
+        <button class="btn btn-primary" id="sync-btn" type="button" aria-label="סנכרן עכשיו">
+          <span class="spinner" aria-hidden="true"></span>
+          <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9M18.5 3v4.2h-4.2M5.5 21v-4.2h4.2"/></svg>
+          <span class="btn-label">סנכרן עכשיו</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="ptr" id="ptr" aria-hidden="true"><span class="ptr-spinner"></span></div>
+
+  <div class="banner" id="demo-banner" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+    <span>מצב הדגמה — הנתונים בדויים והסנכרון מושבת.</span>
+  </div>
+
+  <main class="page" id="page">
+    <div class="large-title" id="large-title">
+      <h1 id="large-title-text">סקירה</h1>
+      <div class="large-title-slot" id="month-slot"></div>
+    </div>
+
+    <section class="kpis" id="kpis" data-tab="overview" aria-label="מדדים עיקריים"></section>
+
+    <section class="grid">
+      <article class="card span-8" data-tab="overview" style="--i:1">
+        <header class="card-head">
+          <div>
+            <h2>הכנסות מול הוצאות</h2>
+            <p class="sub" id="monthly-sub">לחצו על חודש למעבר</p>
+          </div>
+          <div class="legend-inline">
+            <span><i class="sw sw-pos"></i>הכנסות</span>
+            <span><i class="sw sw-neg"></i>הוצאות</span>
+          </div>
+        </header>
+        <div class="chart-box chart-tall"><canvas id="chart-monthly" aria-label="גרף הכנסות מול הוצאות" role="img"></canvas><div class="skeleton skel-fill"></div></div>
+      </article>
+
+      <article class="card span-4" data-tab="overview" style="--i:2">
+        <header class="card-head">
+          <div>
+            <h2>הוצאות לפי קטגוריה</h2>
+            <p class="sub">לחצו על קטגוריה לסינון התנועות</p>
+          </div>
+        </header>
+        <div class="donut-wrap">
+          <div class="chart-box chart-donut">
+            <canvas id="chart-categories" aria-label="גרף הוצאות לפי קטגוריה" role="img"></canvas>
+            <div class="donut-center" aria-hidden="true"><span class="donut-total" id="donut-total"></span><span class="donut-cap">סה״כ הוצאות</span></div>
+            <div class="skeleton skel-circle"></div>
+          </div>
+          <ul class="cat-list" id="cat-list"></ul>
+        </div>
+      </article>
+
+      <article class="card span-8" data-tab="overview" style="--i:3">
+        <header class="card-head">
+          <div>
+            <h2>הוצאה מצטברת</h2>
+            <p class="sub" id="cum-sub">החודש מול החודש הקודם</p>
+          </div>
+          <div class="legend-inline">
+            <span><i class="sw sw-accent"></i>החודש</span>
+            <span><i class="sw sw-muted"></i>חודש קודם</span>
+          </div>
+        </header>
+        <div class="chart-box chart-mid"><canvas id="chart-daily" aria-label="גרף הוצאה מצטברת" role="img"></canvas><div class="skeleton skel-fill"></div></div>
+      </article>
+
+      <article class="card span-4" data-tab="accounts" style="--i:4">
+        <header class="card-head">
+          <div>
+            <h2>חשבונות</h2>
+            <p class="sub" id="accounts-sub">&nbsp;</p>
+          </div>
+        </header>
+        <ul class="accounts" id="accounts"></ul>
+      </article>
+
+      <article class="card span-8" data-tab="recurring" style="--i:5">
+        <header class="card-head">
+          <div>
+            <h2>תשלומים קבועים</h2>
+            <p class="sub">הוראות קבע, מנויים והכנסות חוזרות</p>
+          </div>
+          <div class="fixed-total">
+            <span class="fixed-cap">עלות קבועה חודשית</span>
+            <span class="fixed-val num" id="fixed-total">&nbsp;</span>
+          </div>
+        </header>
+        <div class="table-wrap">
+          <table class="table" id="recurring-table">
+            <thead><tr><th>תיאור</th><th class="col-kind">סוג</th><th class="col-next">חיוב הבא</th><th class="num-col">סכום</th></tr></thead>
+            <tbody id="recurring-body"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="card span-4" data-tab="accounts" style="--i:6">
+        <header class="card-head">
+          <div>
+            <h2>יומן סנכרון</h2>
+            <p class="sub">10 הריצות האחרונות</p>
+          </div>
+        </header>
+        <ul class="synclog" id="synclog"></ul>
+      </article>
+
+      <article class="card span-12 card-txn" id="txn-card" data-tab="txns" style="--i:7">
+        <header class="card-head card-head-wrap">
+          <div class="txn-title">
+            <h2>תנועות</h2>
+            <p class="sub" id="txn-sub">&nbsp;</p>
+          </div>
+          <div class="filters">
+            <label class="search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input id="txn-q" type="search" placeholder="חיפוש בתיאור…" autocomplete="off" maxlength="100" aria-label="חיפוש תנועות" enterkeyhint="search">
+            </label>
+            <div class="segmented" role="radiogroup" aria-label="כיוון">
+              <button type="button" role="radio" data-dir="" aria-checked="true">הכל</button>
+              <button type="button" role="radio" data-dir="out" aria-checked="false">הוצאות</button>
+              <button type="button" role="radio" data-dir="in" aria-checked="false">הכנסות</button>
+            </div>
+            <select id="txn-source" class="select" aria-label="מקור"><option value="">כל המקורות</option></select>
+          </div>
+        </header>
+        <div class="chips" id="txn-chips"></div>
+        <div class="txn-list" id="txn-list" role="list"></div>
+        <footer class="pager" id="pager">
+          <span class="pager-info" id="pager-info"></span>
+          <div class="pager-btns">
+            <button class="btn btn-ghost" id="page-prev" type="button">הקודם</button>
+            <button class="btn btn-ghost" id="page-next" type="button">הבא</button>
+          </div>
+        </footer>
+      </article>
+    </section>
+
+    <footer class="foot">DashBank · רץ מקומית על המחשב שלך</footer>
+  </main>
+
+  <nav class="tabbar" id="tabbar" aria-label="ניווט">
+    <button type="button" class="tab" data-tab="overview" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="9" rx="2"/><rect x="13.5" y="3.5" width="7" height="5" rx="2"/><rect x="13.5" y="11.5" width="7" height="9" rx="2"/><rect x="3.5" y="15.5" width="7" height="5" rx="2"/></svg>
+      <span>סקירה</span>
+    </button>
+    <button type="button" class="tab" data-tab="txns">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
+      <span>עסקאות</span>
+    </button>
+    <button type="button" class="tab" data-tab="recurring">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 2.5l3 3-3 3"/><path d="M4 11v-1a4.5 4.5 0 0 1 4.5-4.5H20"/><path d="M7 21.5l-3-3 3-3"/><path d="M20 13v1a4.5 4.5 0 0 1-4.5 4.5H4"/></svg>
+      <span>קבועים</span>
+    </button>
+    <button type="button" class="tab" data-tab="accounts">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg>
+      <span>חשבונות</span>
+    </button>
+  </nav>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
+    <div class="sheet-grabber" id="sheet-grabber"><span></span></div>
+    <button class="icon-btn sheet-close" id="sheet-close" type="button" aria-label="סגירה">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+</body>
+</html>
