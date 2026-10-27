@@ -1,0 +1,287 @@
+{
+  "app": {
+    "skip": "Skip to main content",
+    "brand_home": "DashBank",
+    "footer": "DashBank · runs locally on your computer",
+    "legal_nav": "Legal",
+    "demo_banner": "Demo mode — the data is fictional and sync is disabled.",
+    "offline": "Offline · showing latest data"
+  },
+  "lang": {
+    "title": "Change language",
+    "toggle_short": "עב",
+    "toggle_label": "עברית",
+    "toggle_target": "he",
+    "switched": "Language switched to English"
+  },
+  "tabs": {
+    "label": "Navigation",
+    "overview": "Overview",
+    "txns": "Transactions",
+    "recurring": "Recurring",
+    "accounts": "Accounts"
+  },
+  "month": {
+    "nav_label": "Choose month",
+    "prev": "Previous month",
+    "next": "Next month"
+  },
+  "sync": {
+    "now": "Sync now",
+    "loading": "Loading…",
+    "syncing": "Syncing…",
+    "synced": "Synced {when}",
+    "partial": "Partial sync {when}",
+    "never": "Not synced yet",
+    "last": "Last sync: {when}",
+    "disabled_demo": "Sync is disabled in demo mode",
+    "unavailable": "Sync is unavailable",
+    "started": "Sync started…",
+    "failed": "Sync failed",
+    "already": "A sync is already running",
+    "done": "Sync complete",
+    "done_errors": "Sync finished with errors"
+  },
+  "kpi": {
+    "label": "Key figures",
+    "balance": "Checking balance",
+    "income": "Income this month",
+    "expense": "Spending this month",
+    "net": "Net cash flow",
+    "pending": "Pending charges",
+    "vs_prev": "vs. last month",
+    "updated": "Updated {when}",
+    "no_balance": "No balance data",
+    "pending_some": "On cards, not yet posted",
+    "pending_none": "No pending charges",
+    "delta_up": "Up",
+    "delta_down": "Down",
+    "delta_same": "No change"
+  },
+  "charts": {
+    "income": "Income",
+    "expense": "Expenses",
+    "monthly_title": "Income vs. expenses",
+    "monthly_hint": "Click a month to open it",
+    "monthly_sub": "{count} months · click a month to open it",
+    "net": "Net: {amount}",
+    "categories_title": "Spending by category",
+    "categories_sub": "Click a category to filter transactions",
+    "total_expense": "Total spent",
+    "other_categories": "Other categories",
+    "filter_by": "Filter by {category}",
+    "no_expenses": "No spending this month",
+    "cumulative_title": "Cumulative spending",
+    "cumulative_sub": "This month vs. last month",
+    "cumulative_vs": "{cur} vs. {prev}",
+    "this_month": "This month",
+    "prev_month": "Last month",
+    "day_of_month": "Day {day} of the month",
+    "no_data_month": "No data for this month",
+    "no_data": "No data yet",
+    "monthly_summary": "Bar chart of income and expenses over the last {count} months. {month}: income {income}, expenses {expense}. Full data in the table after the chart.",
+    "categories_summary": "Doughnut chart of spending by category, total {total}. {top}.",
+    "categories_summary_empty": "Doughnut chart of spending by category: no spending this month.",
+    "daily_summary": "Line chart of cumulative spending. {cur}: {curTotal}. {prev}: {prevTotal}.",
+    "table_monthly": "Income and expenses by month",
+    "table_categories": "Spending by category",
+    "table_daily": "Cumulative spending by day of month",
+    "col_month": "Month",
+    "col_income": "Income",
+    "col_expense": "Expenses",
+    "col_net": "Net",
+    "col_category": "Category",
+    "col_amount": "Amount",
+    "col_share": "Share",
+    "col_day": "Day"
+  },
+  "accounts": {
+    "title": "Accounts",
+    "count": {
+      "one": "1 connected account",
+      "other": "{count} connected accounts"
+    },
+    "none": "No accounts",
+    "empty": "No accounts synced yet",
+    "month_charges": "Charges this month"
+  },
+  "recurring": {
+    "title": "Recurring payments",
+    "sub": "Standing orders, subscriptions and recurring income",
+    "fixed": "Fixed monthly cost",
+    "col_desc": "Description",
+    "col_kind": "Type",
+    "col_next": "Next charge",
+    "col_amount": "Amount",
+    "empty": "No recurring payments detected yet",
+    "inactive": "Inactive",
+    "charges": {
+      "one": "1 charge",
+      "other": "{count} charges"
+    },
+    "next": "next {when}"
+  },
+  "kinds": {
+    "standing_order": "Standing order",
+    "subscription": "Subscription",
+    "income": "Recurring income",
+    "recurring": "Recurring"
+  },
+  "cadences": {
+    "monthly": "Monthly",
+    "weekly": "Weekly",
+    "yearly": "Yearly"
+  },
+  "synclog": {
+    "title": "Sync log",
+    "sub": "Last 10 runs",
+    "empty": "No sync has run yet",
+    "ok": "Succeeded",
+    "failed": "Failed",
+    "new": {
+      "one": "1 new transaction",
+      "other": "{count} new transactions"
+    },
+    "none": "No new transactions",
+    "unknown_error": "Unknown error"
+  },
+  "txns": {
+    "title": "Transactions",
+    "search_placeholder": "Search descriptions…",
+    "search_label": "Search transactions",
+    "direction_label": "Direction",
+    "all": "All",
+    "out": "Expenses",
+    "in": "Income",
+    "source_label": "Source",
+    "all_sources": "All sources",
+    "count": {
+      "one": "1 transaction in {month}",
+      "other": "{count} transactions in {month}"
+    },
+    "filtered": " (filtered)",
+    "empty_filtered": "No transactions match the filter",
+    "empty": "No transactions this month",
+    "prev": "Previous",
+    "next": "Next",
+    "pager": "{start}–{end} of {total}",
+    "pager_label": "Transaction pages",
+    "remove_filter": "Remove filter",
+    "chip_category": "Category: {category}",
+    "pending": "Pending",
+    "installments": "Installments",
+    "no_category": "Uncategorized",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "export": "Export CSV",
+    "export_title": "Download the filtered transactions as a CSV file (opens in Excel)"
+  },
+  "sheet": {
+    "close": "Close",
+    "original_amount": "Original amount {amount}",
+    "pending": "Pending",
+    "completed": "Posted",
+    "installment": "Installment {n} of {total}",
+    "date": "Transaction date",
+    "processed": "Charge date",
+    "source": "Source",
+    "account": "Account / card",
+    "category": "Category",
+    "memo": "Note",
+    "all_in_category": "All {category}",
+    "similar": "Similar transactions"
+  },
+  "errors": {
+    "load_overview": "Couldn't load data: {msg}",
+    "load_txns": "Couldn't load transactions: {msg}"
+  },
+  "time": {
+    "just_now": "just now",
+    "minutes_ago": {
+      "one": "1 minute ago",
+      "other": "{count} minutes ago"
+    },
+    "hours_ago": {
+      "one": "1 hour ago",
+      "other": "{count} hours ago"
+    },
+    "days_ago": {
+      "one": "yesterday",
+      "other": "{count} days ago"
+    },
+    "today": "today",
+    "in_days": {
+      "one": "tomorrow",
+      "other": "in {count} days"
+    }
+  },
+  "footer": {
+    "privacy": "Privacy notice",
+    "terms": "Terms of use",
+    "accessibility": "Accessibility statement"
+  },
+  "legal": {
+    "back": "Back to the dashboard",
+    "contact_owner": "The system owner",
+    "not_legal_advice": "Not legal advice",
+    "privacy_title": "Privacy notice · DashBank",
+    "terms_title": "Terms of use · DashBank",
+    "accessibility_title": "Accessibility statement · DashBank"
+  },
+  "login": {
+    "title": "Sign in to DashBank",
+    "username": "Username",
+    "password": "Password",
+    "code": "Verification code (6 digits)",
+    "continue": "Continue",
+    "google": "Sign in with Google",
+    "logout": "Sign out",
+    "errors": {
+      "invalid": "Wrong username, password or code",
+      "rate_limited": "Too many attempts. Try again in a few minutes",
+      "setup_required": "Sign-in isn't set up yet. Run npm run setup to create a user"
+    }
+  },
+  "sources": {
+    "hapoalim": "Bank Hapoalim",
+    "isracard": "Isracard",
+    "visaCal": "Cal",
+    "max": "Max",
+    "amex": "American Express",
+    "leumi": "Bank Leumi",
+    "discount": "Discount Bank",
+    "mizrahi": "Mizrahi Tefahot"
+  },
+  "sources_short": {
+    "hapoalim": "Hapoalim",
+    "isracard": "Isracard",
+    "visaCal": "Cal",
+    "max": "Max",
+    "amex": "Amex",
+    "leumi": "Leumi",
+    "discount": "Discount",
+    "mizrahi": "Mizrahi"
+  },
+  "categories": {
+    "חיוב כרטיס אשראי": "Credit card bill",
+    "משכורת": "Salary",
+    "קצבאות": "Benefits",
+    "העברות": "Transfers",
+    "הכנסה": "Income",
+    "דיור": "Housing",
+    "מזון וסופר": "Groceries",
+    "מסעדות וקפה": "Restaurants & cafés",
+    "תחבורה ודלק": "Transport & fuel",
+    "תקשורת": "Phone & internet",
+    "מנויים ודיגיטל": "Subscriptions & digital",
+    "חשבונות בית": "Household bills",
+    "ביטוח ובריאות": "Insurance & health",
+    "קניות": "Shopping",
+    "חינוך": "Education",
+    "פנאי": "Leisure",
+    "משיכת מזומן": "Cash withdrawal",
+    "עמלות": "Fees",
+    "הוראות קבע": "Standing orders",
+    "אחר": "Other"
+  }
+}

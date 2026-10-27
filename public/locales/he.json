@@ -1,0 +1,290 @@
+{
+  "app": {
+    "skip": "דילוג לתוכן הראשי",
+    "brand_home": "DashBank",
+    "footer": "DashBank · רץ מקומית על המחשב שלך",
+    "legal_nav": "מידע משפטי",
+    "demo_banner": "מצב הדגמה — הנתונים בדויים והסנכרון מושבת.",
+    "offline": "לא מקוון · מציג נתונים אחרונים"
+  },
+  "lang": {
+    "title": "החלפת שפה",
+    "toggle_short": "EN",
+    "toggle_label": "English",
+    "toggle_target": "en",
+    "switched": "השפה הוחלפה לעברית"
+  },
+  "tabs": {
+    "label": "ניווט",
+    "overview": "סקירה",
+    "txns": "עסקאות",
+    "recurring": "קבועים",
+    "accounts": "חשבונות"
+  },
+  "month": {
+    "nav_label": "בחירת חודש",
+    "prev": "החודש הקודם",
+    "next": "החודש הבא"
+  },
+  "sync": {
+    "now": "סנכרן עכשיו",
+    "loading": "טוען…",
+    "syncing": "מסנכרן…",
+    "synced": "סונכרן {when}",
+    "partial": "סנכרון חלקי {when}",
+    "never": "טרם סונכרן",
+    "last": "סנכרון אחרון: {when}",
+    "disabled_demo": "הסנכרון מושבת במצב הדגמה",
+    "unavailable": "הסנכרון אינו זמין",
+    "started": "הסנכרון התחיל…",
+    "failed": "הסנכרון נכשל",
+    "already": "סנכרון כבר רץ ברקע",
+    "done": "הסנכרון הושלם",
+    "done_errors": "הסנכרון הסתיים עם שגיאות"
+  },
+  "kpi": {
+    "label": "מדדים עיקריים",
+    "balance": "יתרה בעו״ש",
+    "income": "הכנסות החודש",
+    "expense": "הוצאות החודש",
+    "net": "תזרים נטו",
+    "pending": "חיובים ממתינים",
+    "vs_prev": "לעומת חודש קודם",
+    "updated": "עודכן {when}",
+    "no_balance": "אין נתוני יתרה",
+    "pending_some": "בכרטיסים, טרם נקלטו",
+    "pending_none": "אין חיובים ממתינים",
+    "delta_up": "עלייה",
+    "delta_down": "ירידה",
+    "delta_same": "ללא שינוי"
+  },
+  "charts": {
+    "income": "הכנסות",
+    "expense": "הוצאות",
+    "monthly_title": "הכנסות מול הוצאות",
+    "monthly_hint": "לחצו על חודש למעבר",
+    "monthly_sub": "{count} חודשים · לחצו על חודש למעבר",
+    "net": "נטו: {amount}",
+    "categories_title": "הוצאות לפי קטגוריה",
+    "categories_sub": "לחצו על קטגוריה לסינון התנועות",
+    "total_expense": "סה״כ הוצאות",
+    "other_categories": "שאר הקטגוריות",
+    "filter_by": "סינון לפי {category}",
+    "no_expenses": "אין הוצאות בחודש זה",
+    "cumulative_title": "הוצאה מצטברת",
+    "cumulative_sub": "החודש מול החודש הקודם",
+    "cumulative_vs": "{cur} מול {prev}",
+    "this_month": "החודש",
+    "prev_month": "חודש קודם",
+    "day_of_month": "יום {day} בחודש",
+    "no_data_month": "אין נתונים לחודש זה",
+    "no_data": "אין עדיין נתונים",
+    "monthly_summary": "גרף עמודות של הכנסות והוצאות ב-{count} החודשים האחרונים. {month}: הכנסות {income}, הוצאות {expense}. הנתונים המלאים בטבלה שאחרי הגרף.",
+    "categories_summary": "גרף טבעת של הוצאות לפי קטגוריה, סה״כ {total}. {top}.",
+    "categories_summary_empty": "גרף טבעת של הוצאות לפי קטגוריה: אין הוצאות בחודש זה.",
+    "daily_summary": "גרף קווי של הוצאה מצטברת. {cur}: {curTotal}. {prev}: {prevTotal}.",
+    "table_monthly": "הכנסות והוצאות לפי חודש",
+    "table_categories": "הוצאות לפי קטגוריה",
+    "table_daily": "הוצאה מצטברת לפי יום בחודש",
+    "col_month": "חודש",
+    "col_income": "הכנסות",
+    "col_expense": "הוצאות",
+    "col_net": "נטו",
+    "col_category": "קטגוריה",
+    "col_amount": "סכום",
+    "col_share": "אחוז",
+    "col_day": "יום"
+  },
+  "accounts": {
+    "title": "חשבונות",
+    "count": {
+      "one": "חשבון אחד מחובר",
+      "other": "{count} חשבונות מחוברים"
+    },
+    "none": "אין חשבונות",
+    "empty": "עוד לא סונכרנו חשבונות",
+    "month_charges": "חיובים החודש"
+  },
+  "recurring": {
+    "title": "תשלומים קבועים",
+    "sub": "הוראות קבע, מנויים והכנסות חוזרות",
+    "fixed": "עלות קבועה חודשית",
+    "col_desc": "תיאור",
+    "col_kind": "סוג",
+    "col_next": "חיוב הבא",
+    "col_amount": "סכום",
+    "empty": "לא זוהו עדיין תשלומים קבועים",
+    "inactive": "לא פעיל",
+    "charges": {
+      "one": "חיוב אחד",
+      "other": "{count} חיובים"
+    },
+    "next": "הבא {when}"
+  },
+  "kinds": {
+    "standing_order": "הוראת קבע",
+    "subscription": "מנוי",
+    "income": "הכנסה קבועה",
+    "recurring": "חוזר"
+  },
+  "cadences": {
+    "monthly": "חודשי",
+    "weekly": "שבועי",
+    "yearly": "שנתי"
+  },
+  "synclog": {
+    "title": "יומן סנכרון",
+    "sub": "10 הריצות האחרונות",
+    "empty": "עוד לא בוצע סנכרון",
+    "ok": "הצליח",
+    "failed": "נכשל",
+    "new": {
+      "one": "תנועה חדשה אחת",
+      "other": "{count} תנועות חדשות"
+    },
+    "none": "אין תנועות חדשות",
+    "unknown_error": "שגיאה לא ידועה"
+  },
+  "txns": {
+    "title": "תנועות",
+    "search_placeholder": "חיפוש בתיאור…",
+    "search_label": "חיפוש תנועות",
+    "direction_label": "כיוון",
+    "all": "הכל",
+    "out": "הוצאות",
+    "in": "הכנסות",
+    "source_label": "מקור",
+    "all_sources": "כל המקורות",
+    "count": {
+      "one": "תנועה אחת ב{month}",
+      "other": "{count} תנועות ב{month}"
+    },
+    "filtered": " (מסונן)",
+    "empty_filtered": "אין תנועות שתואמות לסינון",
+    "empty": "אין תנועות בחודש זה",
+    "prev": "הקודם",
+    "next": "הבא",
+    "pager": "{start}–{end} מתוך {total}",
+    "pager_label": "דפדוף בתנועות",
+    "remove_filter": "הסרת סינון",
+    "chip_category": "קטגוריה: {category}",
+    "pending": "ממתין",
+    "installments": "תשלומים",
+    "no_category": "ללא קטגוריה",
+    "today": "היום",
+    "yesterday": "אתמול",
+    "export": "ייצוא CSV",
+    "export_title": "הורדת התנועות המסוננות כקובץ CSV (נפתח באקסל)"
+  },
+  "sheet": {
+    "close": "סגירה",
+    "original_amount": "סכום מקורי {amount}",
+    "pending": "ממתין לחיוב",
+    "completed": "נקלט",
+    "installment": "תשלום {n} מתוך {total}",
+    "date": "תאריך עסקה",
+    "processed": "תאריך חיוב",
+    "source": "מקור",
+    "account": "חשבון / כרטיס",
+    "category": "קטגוריה",
+    "memo": "הערה",
+    "all_in_category": "כל ה{category}",
+    "similar": "עסקאות דומות"
+  },
+  "errors": {
+    "load_overview": "שגיאה בטעינת הנתונים: {msg}",
+    "load_txns": "שגיאה בטעינת התנועות: {msg}"
+  },
+  "time": {
+    "just_now": "הרגע",
+    "minutes_ago": {
+      "one": "לפני דקה",
+      "other": "לפני {count} דקות"
+    },
+    "hours_ago": {
+      "one": "לפני שעה",
+      "two": "לפני שעתיים",
+      "other": "לפני {count} שעות"
+    },
+    "days_ago": {
+      "one": "אתמול",
+      "two": "שלשום",
+      "other": "לפני {count} ימים"
+    },
+    "today": "היום",
+    "in_days": {
+      "one": "מחר",
+      "two": "מחרתיים",
+      "other": "בעוד {count} ימים"
+    }
+  },
+  "footer": {
+    "privacy": "מדיניות פרטיות",
+    "terms": "תנאי שימוש",
+    "accessibility": "הצהרת נגישות"
+  },
+  "legal": {
+    "back": "חזרה ללוח הבקרה",
+    "contact_owner": "בעל המערכת",
+    "not_legal_advice": "אינו מהווה ייעוץ משפטי",
+    "privacy_title": "מדיניות פרטיות · DashBank",
+    "terms_title": "תנאי שימוש · DashBank",
+    "accessibility_title": "הצהרת נגישות · DashBank"
+  },
+  "login": {
+    "title": "כניסה ל-DashBank",
+    "username": "שם משתמש",
+    "password": "סיסמה",
+    "code": "קוד אימות (6 ספרות)",
+    "continue": "המשך",
+    "google": "כניסה עם Google",
+    "logout": "יציאה",
+    "errors": {
+      "invalid": "שם המשתמש, הסיסמה או הקוד שגויים",
+      "rate_limited": "יותר מדי ניסיונות. נסו שוב בעוד כמה דקות",
+      "setup_required": "עדיין לא הוגדרה כניסה. הריצו npm run setup כדי ליצור משתמש"
+    }
+  },
+  "sources": {
+    "hapoalim": "בנק הפועלים",
+    "isracard": "ישראכרט",
+    "visaCal": "כאל",
+    "max": "מקס",
+    "amex": "אמריקן אקספרס",
+    "leumi": "בנק לאומי",
+    "discount": "דיסקונט",
+    "mizrahi": "מזרחי טפחות"
+  },
+  "sources_short": {
+    "hapoalim": "הפועלים",
+    "isracard": "ישראכרט",
+    "visaCal": "כאל",
+    "max": "מקס",
+    "amex": "אמריקן אקספרס",
+    "leumi": "לאומי",
+    "discount": "דיסקונט",
+    "mizrahi": "מזרחי טפחות"
+  },
+  "categories": {
+    "חיוב כרטיס אשראי": "חיוב כרטיס אשראי",
+    "משכורת": "משכורת",
+    "קצבאות": "קצבאות",
+    "העברות": "העברות",
+    "הכנסה": "הכנסה",
+    "דיור": "דיור",
+    "מזון וסופר": "מזון וסופר",
+    "מסעדות וקפה": "מסעדות וקפה",
+    "תחבורה ודלק": "תחבורה ודלק",
+    "תקשורת": "תקשורת",
+    "מנויים ודיגיטל": "מנויים ודיגיטל",
+    "חשבונות בית": "חשבונות בית",
+    "ביטוח ובריאות": "ביטוח ובריאות",
+    "קניות": "קניות",
+    "חינוך": "חינוך",
+    "פנאי": "פנאי",
+    "משיכת מזומן": "משיכת מזומן",
+    "עמלות": "עמלות",
+    "הוראות קבע": "הוראות קבע",
+    "אחר": "אחר"
+  }
+}

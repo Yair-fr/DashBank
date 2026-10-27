@@ -2,7 +2,7 @@ import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { openDb, CARD_SETTLEMENT_CATEGORY } from '../src/db.js';
 import { normalizeTxn, SOURCE_LABELS } from '../src/normalize.js';
-import { createApp, monthRange } from '../src/server.js';
+import { createApp, monthRange, transactionsCsv } from '../src/server.js';
 
 const mk = (o) => {
   const t = normalizeTxn({
@@ -235,5 +235,46 @@ test('unknown /api route → 404 JSON; thrown errors → 500 {error:"internal"}'
   res = await fetch(`${s.base}/api/overview?month=2026-10`);
   assert.equal(res.status, 500);
   assert.deepEqual(await res.json(), { error: 'internal' });
+  await s.close();
+});
+
+test('GET /api/transactions.csv: UTF-8 BOM, Hebrew headers, same filters, all rows', async () => {
+  const res = await fetch(`${srv.base}/api/transactions.csv?from=2026-10-01&to=2026-11-01&direction=out`);
+  assert.equal(res.status, 200);
+  assert.match(res.headers.get('content-type'), /^text\/csv; charset=utf-8/);
+  assert.match(res.headers.get('content-disposition'), /attachment; filename="dashbank-2026-10\.csv"/);
+  const buf = Buffer.from(await res.arrayBuffer());
+  assert.deepEqual([...buf.subarray(0, 3)], [0xef, 0xbb, 0xbf]);
+  const lines = buf.toString('utf8').slice(1).trim().split('\r\n');
+  assert.match(lines[0], /^תאריך,/);
+  assert.equal(lines.length, 1 + 3); // three October outflows
+  assert.ok(lines.some((l) => l.includes('שופרסל דיל') && l.includes('-250')));
+  assert.ok(lines.some((l) => l.includes('ממתין')));
+  assert.ok(!lines.some((l) => l.includes('משכורת')));
+});
+
+test('GET /api/transactions.csv?lang=en uses English headers and rejects bad filters', async () => {
+  let res = await fetch(`${srv.base}/api/transactions.csv?lang=en&category=${encodeURIComponent('מזון')}`);
+  const text = await res.text();
+  assert.match(text, /^Date,Charge date,Description,Amount/); // fetch().text() strips the BOM
+  assert.equal(text.trim().split('\r\n').length, 2);
+  res = await fetch(`${srv.base}/api/transactions.csv?from=bad`);
+  assert.equal(res.status, 400);
+});
+
+test('transactionsCsv quotes fields and neutralises formulas', () => {
+  const csv = transactionsCsv([{ date: '2026-10-01T00:00:00Z', description: '=HYPERLINK("x")', amount: -5, memo: 'a,b', category: null, source: 'max', status: 'completed' }]);
+  const row = csv.trim().split('\r\n')[1];
+  assert.match(row, /"'=HYPERLINK\(""x""\)"/);
+  assert.match(row, /,-5,/);
+  assert.match(row, /"a,b"$/);
+});
+
+test('GET /api/public-config exposes only the accessibility contact', async () => {
+  let res = await fetch(`${srv.base}/api/public-config`);
+  assert.deepEqual(await res.json(), { accessibilityContact: null });
+  const s = await start({ db, config: { accessibilityContact: 'a11y@example.com', passphrase: 'secret' } });
+  res = await fetch(`${s.base}/api/public-config`);
+  assert.deepEqual(await res.json(), { accessibilityContact: 'a11y@example.com' });
   await s.close();
 });

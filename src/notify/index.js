@@ -8,6 +8,7 @@ export function createNotifier(config, { fetch = globalThis.fetch } = {}) {
   if (config.telegram?.token && config.telegram?.chatId) chans.push(createTelegram(config.telegram, { fetch }));
   if (config.ntfy?.topic && config.ntfy?.server) chans.push(createNtfy(config.ntfy, { fetch }));
   const seenErrors = new Set();
+  const fmt = { lang: config.notifyLang, privacy: Boolean(config.notifyPrivacy) };
 
   async function broadcast(msg) {
     let sent = 0, failed = 0;
@@ -27,11 +28,11 @@ export function createNotifier(config, { fetch = globalThis.fetch } = {}) {
     channels: chans.map((c) => c.name),
     async notifyTxn(txn) {
       if (txn.amount < 0 && Math.abs(txn.amount) < (config.notifyMinAmount || 0)) return { sent: 0, failed: 0 };
-      return broadcast(formatTxn(txn));
+      return broadcast(formatTxn(txn, fmt));
     },
     async notifySummary(newTxns, label) {
       if (!newTxns.length) return { sent: 0, failed: 0 };
-      return broadcast({ title: `📊 ${label}`, body: formatSummary(newTxns), tags: ['bar_chart'], priority: 3 });
+      return broadcast({ title: `📊 ${label}`, body: formatSummary(newTxns, fmt), tags: ['bar_chart'], priority: 3 });
     },
     async notifyError(label, message) {
       const day = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Jerusalem' });

@@ -325,7 +325,7 @@ docs/               design spec, implementation plan, compliance check, screensh
 | Sync, storage, categories, recurring detection, notifications | ✅ Done |
 | Dashboard + Android PWA (offline, dark mode, motion) | ✅ Done |
 | Sign-in backend (password + TOTP, Google OIDC) | ✅ Done, 🔄 connecting to the UI |
-| English / Hebrew UI, WCAG 2.1 AA, in-app legal pages, CSV export | 🔄 In progress |
+| English / Hebrew UI, WCAG 2.1 AA, in-app legal pages, CSV export | ✅ Done |
 
 ---
 

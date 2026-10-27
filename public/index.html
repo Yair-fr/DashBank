@@ -18,37 +18,43 @@
   <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="styles.css">
+  <script src="i18n.js"></script>
   <script src="vendor/chart.umd.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body class="intro" data-tab="overview">
+  <a class="skip-link" href="#page" data-i18n="app.skip">דילוג לתוכן הראשי</a>
   <header class="topbar" id="topbar">
     <div class="topbar-inner">
       <div class="brand">
         <img class="brand-mark" src="icons/icon.svg" alt="" width="32" height="32">
-        <span class="brand-name">DashBank</span>
+        <span class="brand-name" lang="en">DashBank</span>
         <span class="nav-title" id="nav-title" aria-hidden="true">סקירה</span>
       </div>
 
-      <nav class="month-nav" id="month-nav" aria-label="בחירת חודש">
-        <button class="icon-btn" id="month-prev" type="button" aria-label="החודש הקודם">
+      <nav class="month-nav" id="month-nav" aria-label="בחירת חודש" data-i18n-label="month.nav_label">
+        <button class="icon-btn" id="month-prev" type="button" aria-label="החודש הקודם" data-i18n-label="month.prev">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
         </button>
         <span class="month-label" id="month-label" aria-live="polite">&nbsp;</span>
-        <button class="icon-btn" id="month-next" type="button" aria-label="החודש הבא">
+        <button class="icon-btn" id="month-next" type="button" aria-label="החודש הבא" data-i18n-label="month.next">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
         </button>
       </nav>
 
       <div class="sync">
-        <div class="sync-status" id="sync-status" title="">
+        <div class="sync-status" id="sync-status" role="status" aria-live="polite" title="">
           <span class="dot" id="sync-dot" aria-hidden="true"></span>
-          <span id="sync-text">טוען…</span>
+          <span id="sync-text" data-i18n="sync.loading">טוען…</span>
         </div>
-        <button class="btn btn-primary" id="sync-btn" type="button" aria-label="סנכרן עכשיו">
+        <button class="lang-btn" id="lang-btn" type="button" title="החלפת שפה" data-i18n-title="lang.title">
+          <span aria-hidden="true" id="lang-short" lang="en" data-i18n="lang.toggle_short">EN</span>
+          <span class="sr-only" id="lang-name" lang="en" data-i18n="lang.toggle_label">English</span>
+        </button>
+        <button class="btn btn-primary" id="sync-btn" type="button" aria-label="סנכרן עכשיו" data-i18n-label="sync.now">
           <span class="spinner" aria-hidden="true"></span>
           <svg class="btn-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9M18.5 3v4.2h-4.2M5.5 21v-4.2h4.2"/></svg>
-          <span class="btn-label">סנכרן עכשיו</span>
+          <span class="btn-label" data-i18n="sync.now">סנכרן עכשיו</span>
         </button>
       </div>
     </div>
@@ -58,67 +64,70 @@
 
   <div class="banner" id="demo-banner" hidden>
     <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
-    <span>מצב הדגמה — הנתונים בדויים והסנכרון מושבת.</span>
+    <span data-i18n="app.demo_banner">מצב הדגמה — הנתונים בדויים והסנכרון מושבת.</span>
   </div>
 
-  <main class="page" id="page">
+  <main class="page" id="page" tabindex="-1">
     <div class="large-title" id="large-title">
       <h1 id="large-title-text">סקירה</h1>
       <div class="large-title-slot" id="month-slot"></div>
     </div>
 
-    <section class="kpis" id="kpis" data-tab="overview" aria-label="מדדים עיקריים"></section>
+    <section class="kpis" id="kpis" data-tab="overview" aria-label="מדדים עיקריים" data-i18n-label="kpi.label"></section>
 
     <section class="grid">
       <article class="card span-8" data-tab="overview" style="--i:1">
         <header class="card-head">
           <div>
-            <h2>הכנסות מול הוצאות</h2>
-            <p class="sub" id="monthly-sub">לחצו על חודש למעבר</p>
+            <h2 data-i18n="charts.monthly_title">הכנסות מול הוצאות</h2>
+            <p class="sub" id="monthly-sub" data-i18n="charts.monthly_hint">לחצו על חודש למעבר</p>
           </div>
-          <div class="legend-inline">
-            <span><i class="sw sw-pos"></i>הכנסות</span>
-            <span><i class="sw sw-neg"></i>הוצאות</span>
+          <div class="legend-inline" aria-hidden="true">
+            <span><i class="sw sw-pos"></i><span data-i18n="charts.income">הכנסות</span></span>
+            <span><i class="sw sw-neg"></i><span data-i18n="charts.expense">הוצאות</span></span>
           </div>
         </header>
-        <div class="chart-box chart-tall"><canvas id="chart-monthly" aria-label="גרף הכנסות מול הוצאות" role="img"></canvas><div class="skeleton skel-fill"></div></div>
+        <div class="chart-box chart-tall"><canvas id="chart-monthly" role="img" aria-label="הכנסות מול הוצאות" data-i18n-label="charts.monthly_title"></canvas><div class="skeleton skel-fill"></div></div>
+        <table class="sr-only" id="table-monthly"></table>
       </article>
 
       <article class="card span-4" data-tab="overview" style="--i:2">
         <header class="card-head">
           <div>
-            <h2>הוצאות לפי קטגוריה</h2>
-            <p class="sub">לחצו על קטגוריה לסינון התנועות</p>
+            <h2 data-i18n="charts.categories_title">הוצאות לפי קטגוריה</h2>
+            <p class="sub" data-i18n="charts.categories_sub">לחצו על קטגוריה לסינון התנועות</p>
           </div>
         </header>
         <div class="donut-wrap">
           <div class="chart-box chart-donut">
-            <canvas id="chart-categories" aria-label="גרף הוצאות לפי קטגוריה" role="img"></canvas>
-            <div class="donut-center" aria-hidden="true"><span class="donut-total" id="donut-total"></span><span class="donut-cap">סה״כ הוצאות</span></div>
+            <canvas id="chart-categories" role="img" aria-label="הוצאות לפי קטגוריה" data-i18n-label="charts.categories_title"></canvas>
+            <div class="donut-center" aria-hidden="true"><span class="donut-total" id="donut-total"></span><span class="donut-cap" data-i18n="charts.total_expense">סה״כ הוצאות</span></div>
             <div class="skeleton skel-circle"></div>
           </div>
           <ul class="cat-list" id="cat-list"></ul>
         </div>
+        <table class="sr-only" id="table-categories"></table>
       </article>
 
       <article class="card span-8" data-tab="overview" style="--i:3">
         <header class="card-head">
           <div>
-            <h2>הוצאה מצטברת</h2>
-            <p class="sub" id="cum-sub">החודש מול החודש הקודם</p>
+            <h2 data-i18n="charts.cumulative_title">הוצאה מצטברת</h2>
+            <p class="sub" id="cum-sub" data-i18n="charts.cumulative_sub">החודש מול החודש הקודם</p>
           </div>
-          <div class="legend-inline">
-            <span><i class="sw sw-accent"></i>החודש</span>
-            <span><i class="sw sw-muted"></i>חודש קודם</span>
+          <div class="legend-inline" aria-hidden="true">
+            <span><i class="sw sw-accent"></i><span data-i18n="charts.this_month">החודש</span></span>
+            <span><i class="sw sw-muted"></i><span data-i18n="charts.prev_month">חודש קודם</span></span>
           </div>
         </header>
-        <div class="chart-box chart-mid"><canvas id="chart-daily" aria-label="גרף הוצאה מצטברת" role="img"></canvas><div class="skeleton skel-fill"></div></div>
+        <div class="chart-box chart-mid"><canvas id="chart-daily" role="img" aria-label="הוצאה מצטברת" data-i18n-label="charts.cumulative_title"></canvas><div class="skeleton skel-fill"></div></div>
+        <table class="sr-only" id="table-daily"></table>
       </article>
 
       <article class="card span-4" data-tab="accounts" style="--i:4">
         <header class="card-head">
           <div>
-            <h2>חשבונות</h2>
+            <h2 data-i18n="accounts.title">חשבונות</h2>
             <p class="sub" id="accounts-sub">&nbsp;</p>
           </div>
         </header>
@@ -128,17 +137,17 @@
       <article class="card span-8" data-tab="recurring" style="--i:5">
         <header class="card-head">
           <div>
-            <h2>תשלומים קבועים</h2>
-            <p class="sub">הוראות קבע, מנויים והכנסות חוזרות</p>
+            <h2 data-i18n="recurring.title">תשלומים קבועים</h2>
+            <p class="sub" data-i18n="recurring.sub">הוראות קבע, מנויים והכנסות חוזרות</p>
           </div>
           <div class="fixed-total">
-            <span class="fixed-cap">עלות קבועה חודשית</span>
+            <span class="fixed-cap" data-i18n="recurring.fixed">עלות קבועה חודשית</span>
             <span class="fixed-val num" id="fixed-total">&nbsp;</span>
           </div>
         </header>
         <div class="table-wrap">
           <table class="table" id="recurring-table">
-            <thead><tr><th>תיאור</th><th class="col-kind">סוג</th><th class="col-next">חיוב הבא</th><th class="num-col">סכום</th></tr></thead>
+            <thead><tr><th scope="col" data-i18n="recurring.col_desc">תיאור</th><th scope="col" class="col-kind" data-i18n="recurring.col_kind">סוג</th><th scope="col" class="col-next" data-i18n="recurring.col_next">חיוב הבא</th><th scope="col" class="num-col" data-i18n="recurring.col_amount">סכום</th></tr></thead>
             <tbody id="recurring-body"></tbody>
           </table>
         </div>
@@ -147,8 +156,8 @@
       <article class="card span-4" data-tab="accounts" style="--i:6">
         <header class="card-head">
           <div>
-            <h2>יומן סנכרון</h2>
-            <p class="sub">10 הריצות האחרונות</p>
+            <h2 data-i18n="synclog.title">יומן סנכרון</h2>
+            <p class="sub" data-i18n="synclog.sub">10 הריצות האחרונות</p>
           </div>
         </header>
         <ul class="synclog" id="synclog"></ul>
@@ -157,66 +166,80 @@
       <article class="card span-12 card-txn" id="txn-card" data-tab="txns" style="--i:7">
         <header class="card-head card-head-wrap">
           <div class="txn-title">
-            <h2>תנועות</h2>
+            <h2 data-i18n="txns.title">תנועות</h2>
             <p class="sub" id="txn-sub">&nbsp;</p>
           </div>
           <div class="filters">
             <label class="search">
               <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-              <input id="txn-q" type="search" placeholder="חיפוש בתיאור…" autocomplete="off" maxlength="100" aria-label="חיפוש תנועות" enterkeyhint="search">
+              <input id="txn-q" type="search" placeholder="חיפוש בתיאור…" data-i18n-placeholder="txns.search_placeholder" autocomplete="off" maxlength="100" aria-label="חיפוש תנועות" data-i18n-label="txns.search_label" enterkeyhint="search">
             </label>
-            <div class="segmented" role="radiogroup" aria-label="כיוון">
-              <button type="button" role="radio" data-dir="" aria-checked="true">הכל</button>
-              <button type="button" role="radio" data-dir="out" aria-checked="false">הוצאות</button>
-              <button type="button" role="radio" data-dir="in" aria-checked="false">הכנסות</button>
+            <div class="segmented" role="radiogroup" aria-label="כיוון" data-i18n-label="txns.direction_label">
+              <button type="button" role="radio" data-dir="" aria-checked="true" tabindex="0" data-i18n="txns.all">הכל</button>
+              <button type="button" role="radio" data-dir="out" aria-checked="false" tabindex="-1" data-i18n="txns.out">הוצאות</button>
+              <button type="button" role="radio" data-dir="in" aria-checked="false" tabindex="-1" data-i18n="txns.in">הכנסות</button>
             </div>
-            <select id="txn-source" class="select" aria-label="מקור"><option value="">כל המקורות</option></select>
+            <select id="txn-source" class="select" aria-label="מקור" data-i18n-label="txns.source_label"><option value="" data-i18n="txns.all_sources">כל המקורות</option></select>
+            <a class="btn btn-ghost btn-export" id="txn-export" href="api/transactions.csv" download title="הורדת התנועות המסוננות כקובץ CSV (נפתח באקסל)" data-i18n-title="txns.export_title">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10.5l5 5 5-5M5 19.5h14"/></svg>
+              <span class="btn-label" data-i18n="txns.export">ייצוא CSV</span>
+            </a>
           </div>
         </header>
         <div class="chips" id="txn-chips"></div>
         <div class="txn-list" id="txn-list" role="list"></div>
-        <footer class="pager" id="pager">
+        <nav class="pager" id="pager" aria-label="דפדוף בתנועות" data-i18n-label="txns.pager_label">
           <span class="pager-info" id="pager-info"></span>
           <div class="pager-btns">
-            <button class="btn btn-ghost" id="page-prev" type="button">הקודם</button>
-            <button class="btn btn-ghost" id="page-next" type="button">הבא</button>
+            <button class="btn btn-ghost" id="page-prev" type="button" data-i18n="txns.prev">הקודם</button>
+            <button class="btn btn-ghost" id="page-next" type="button" data-i18n="txns.next">הבא</button>
           </div>
-        </footer>
+        </nav>
       </article>
     </section>
 
-    <footer class="foot">DashBank · רץ מקומית על המחשב שלך</footer>
   </main>
 
-  <nav class="tabbar" id="tabbar" aria-label="ניווט">
-    <button type="button" class="tab" data-tab="overview" aria-current="page">
+  <footer class="foot" id="foot">
+    <p class="foot-line" data-i18n="app.footer">DashBank · רץ מקומית על המחשב שלך</p>
+    <nav class="foot-links" aria-label="מידע משפטי" data-i18n-label="app.legal_nav">
+      <a href="legal/privacy.html" data-i18n="footer.privacy">מדיניות פרטיות</a>
+      <a href="legal/terms.html" data-i18n="footer.terms">תנאי שימוש</a>
+      <a href="legal/accessibility.html" data-i18n="footer.accessibility">הצהרת נגישות</a>
+    </nav>
+  </footer>
+
+  <nav class="tabbar-nav" aria-label="ניווט" data-i18n-label="tabs.label">
+  <div class="tabbar" id="tabbar" role="tablist">
+    <button type="button" class="tab" role="tab" id="tab-overview" data-tab="overview" aria-selected="true" aria-controls="page" tabindex="0">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="9" rx="2"/><rect x="13.5" y="3.5" width="7" height="5" rx="2"/><rect x="13.5" y="11.5" width="7" height="9" rx="2"/><rect x="3.5" y="15.5" width="7" height="5" rx="2"/></svg>
-      <span>סקירה</span>
+      <span data-i18n="tabs.overview">סקירה</span>
     </button>
-    <button type="button" class="tab" data-tab="txns">
+    <button type="button" class="tab" role="tab" id="tab-txns" data-tab="txns" aria-selected="false" aria-controls="page" tabindex="-1">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
-      <span>עסקאות</span>
+      <span data-i18n="tabs.txns">עסקאות</span>
     </button>
-    <button type="button" class="tab" data-tab="recurring">
+    <button type="button" class="tab" role="tab" id="tab-recurring" data-tab="recurring" aria-selected="false" aria-controls="page" tabindex="-1">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 2.5l3 3-3 3"/><path d="M4 11v-1a4.5 4.5 0 0 1 4.5-4.5H20"/><path d="M7 21.5l-3-3 3-3"/><path d="M20 13v1a4.5 4.5 0 0 1-4.5 4.5H4"/></svg>
-      <span>קבועים</span>
+      <span data-i18n="tabs.recurring">קבועים</span>
     </button>
-    <button type="button" class="tab" data-tab="accounts">
+    <button type="button" class="tab" role="tab" id="tab-accounts" data-tab="accounts" aria-selected="false" aria-controls="page" tabindex="-1">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19M6.5 15h4"/></svg>
-      <span>חשבונות</span>
+      <span data-i18n="tabs.accounts">חשבונות</span>
     </button>
+  </div>
   </nav>
 
-  <div class="toast" id="toast" role="status" hidden></div>
+  <div class="toast-region" role="status" aria-live="polite"><div class="toast" id="toast" hidden></div></div>
   <!-- Outside the top bar: its backdrop-filter would become the containing block for position:fixed. -->
   <div class="offline-pill" id="offline-pill" role="status" hidden>
-    <span class="dot err" aria-hidden="true"></span>לא מקוון · מציג נתונים אחרונים
+    <span class="dot err" aria-hidden="true"></span><span data-i18n="app.offline">לא מקוון · מציג נתונים אחרונים</span>
   </div>
 
   <div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
   <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" hidden>
-    <div class="sheet-grabber" id="sheet-grabber"><span></span></div>
-    <button class="icon-btn sheet-close" id="sheet-close" type="button" aria-label="סגירה">
+    <div class="sheet-grabber" id="sheet-grabber" aria-hidden="true"><span></span></div>
+    <button class="icon-btn sheet-close" id="sheet-close" type="button" aria-label="סגירה" data-i18n-label="sheet.close">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
     <div class="sheet-body" id="sheet-body"></div>

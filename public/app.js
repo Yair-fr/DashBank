@@ -1,4 +1,5 @@
-/* DashBank dashboard. All data is written via textContent / DOM APIs — never innerHTML. */
+/* DashBank dashboard. All data is written via textContent / DOM APIs — never innerHTML.
+ * All user-facing strings come from public/locales/*.json through window.I18N (public/i18n.js). */
 (() => {
   'use strict';
 
@@ -6,9 +7,10 @@
   const POLL_MS = 2500;
   const $ = (id) => document.getElementById(id);
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const I18N = window.I18N;
+  const t = (key, vars) => I18N.t(key, vars);
+  const isRtl = () => I18N.dir === 'rtl';
 
-  const KIND_LABELS = { standing_order: 'הוראת קבע', subscription: 'מנוי', income: 'הכנסה קבועה', recurring: 'חוזר' };
-  const CADENCE_LABELS = { monthly: 'חודשי', weekly: 'שבועי', yearly: 'שנתי' };
   const CADENCE_PER_MONTH = { monthly: 1, weekly: 52 / 12, yearly: 1 / 12 };
   const KNOWN_SOURCES = new Set(['hapoalim', 'isracard', 'visaCal', 'max']);
 
@@ -24,14 +26,31 @@
     catColor: null,
   };
 
-  // ---------- formatting ----------
+  // ---------- formatting (rebuilt on language change) ----------
   const stripBidi = (s) => s.replace(/[‎‏؜]/g, '').replace('-', '−');
-  const nf0 = new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 });
-  const nf2 = new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const ils = (n) => stripBidi(nf0.format(Math.round(n || 0)));
-  const ils2 = (n) => stripBidi(nf2.format(n || 0));
+  let F = {};
+  function buildFormatters() {
+    const loc = I18N.locale;
+    const dt = (o) => new Intl.DateTimeFormat(loc, o);
+    F = {
+      nf0: new Intl.NumberFormat(loc, { style: 'currency', currency: 'ILS', maximumFractionDigits: 0 }),
+      nf2: new Intl.NumberFormat(loc, { style: 'currency', currency: 'ILS', minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      int: new Intl.NumberFormat(loc),
+      monthLong: dt({ month: 'long', year: 'numeric' }),
+      monthShort: dt({ month: 'short' }),
+      day: dt({ day: 'numeric', month: 'numeric' }),
+      dayYear: dt({ day: 'numeric', month: 'numeric', year: '2-digit' }),
+      weekday: dt({ weekday: 'long', day: 'numeric', month: 'long' }),
+      longDay: dt({ weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }),
+      full: dt({ dateStyle: 'medium', timeStyle: 'short' }),
+      runTime: dt({ day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    };
+  }
+  const ils = (n) => stripBidi(F.nf0.format(Math.round(n || 0)));
+  const ils2 = (n) => stripBidi(F.nf2.format(n || 0));
+  const fmtInt = (n) => F.int.format(n);
   const fx = (n, cur) => {
-    try { return stripBidi(new Intl.NumberFormat('he-IL', { style: 'currency', currency: cur }).format(n)); }
+    try { return stripBidi(new Intl.NumberFormat(I18N.locale, { style: 'currency', currency: cur }).format(n)); }
     catch { return `${n} ${cur}`; }
   };
   const compact = (n) => {
@@ -41,14 +60,6 @@
     return `₪${Math.round(n)}`;
   };
   const pct = (n) => `${Math.abs(n) >= 10 ? Math.round(Math.abs(n)) : Math.abs(n).toFixed(1)}%`;
-  const dtMonthLong = new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' });
-  const dtMonthShort = new Intl.DateTimeFormat('he-IL', { month: 'short' });
-  const dtDay = new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'numeric' });
-  const dtDayYear = new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'numeric', year: '2-digit' });
-  const dtWeekday = new Intl.DateTimeFormat('he-IL', { weekday: 'long', day: 'numeric', month: 'long' });
-  const dtLongDay = new Intl.DateTimeFormat('he-IL', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
-  const dtFull = new Intl.DateTimeFormat('he-IL', { dateStyle: 'medium', timeStyle: 'short' });
-  const dtRunTime = new Intl.DateTimeFormat('he-IL', { day: 'numeric', month: 'numeric', hour: '2-digit', minute: '2-digit' });
 
   const monthDate = (m) => { const [y, mo] = m.split('-').map(Number); return new Date(y, mo - 1, 1); };
   const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -61,28 +72,24 @@
   const fmtDay = (iso) => {
     if (!iso) return '—';
     const d = parseDay(iso);
-    return (d.getFullYear() === new Date().getFullYear() ? dtDay : dtDayYear).format(d);
+    return (d.getFullYear() === new Date().getFullYear() ? F.day : F.dayYear).format(d);
   };
 
-  // Hand-rolled Hebrew relative time: Chromium's ICU renders duals oddly ("לפני שעתיים (2)").
+  // Hand-rolled relative time from locale plurals: Chromium's ICU renders Hebrew duals oddly.
   function relTime(iso) {
     const secs = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
-    if (secs < 60) return 'הרגע';
+    if (secs < 60) return t('time.just_now');
     const mins = Math.round(secs / 60);
-    if (mins < 60) return mins === 1 ? 'לפני דקה' : `לפני ${mins} דקות`;
+    if (mins < 60) return t('time.minutes_ago', { count: mins });
     const hours = Math.round(secs / 3600);
-    if (hours < 24) return hours === 1 ? 'לפני שעה' : hours === 2 ? 'לפני שעתיים' : `לפני ${hours} שעות`;
-    const days = Math.round(secs / 86400);
-    return days === 1 ? 'אתמול' : days === 2 ? 'שלשום' : `לפני ${days} ימים`;
+    if (hours < 24) return t('time.hours_ago', { count: hours });
+    return t('time.days_ago', { count: Math.round(secs / 86400) });
   }
   function relDays(iso) {
     const days = Math.round((parseDay(iso) - todayStart()) / 86400000);
-    if (days === 0) return 'היום';
-    if (days === 1) return 'מחר';
-    if (days === 2) return 'מחרתיים';
-    if (days > 0) return `בעוד ${days} ימים`;
-    if (days === -1) return 'אתמול';
-    return `לפני ${-days} ימים`;
+    if (days === 0) return t('time.today');
+    if (days > 0) return t('time.in_days', { count: days });
+    return t('time.days_ago', { count: -days });
   }
 
   function initialMonth() {
@@ -93,8 +100,19 @@
     return currentMonth();
   }
 
-  const srcLabel = (s) => state.sourceLabels[s] || s || '—';
+  const srcLabel = (s) => {
+    if (!s) return '—';
+    const tr = I18N.term('sources', s);
+    return tr !== s ? tr : (state.sourceLabels[s] || s);
+  };
+  const srcInitial = (s) => String(I18N.term('sources_short', s) || srcLabel(s)).trim().slice(0, 1);
   const srcKey = (s) => (KNOWN_SOURCES.has(s) ? s : 'other');
+  // Category names are Hebrew data values; only their display is translated.
+  const catName = (c) => I18N.term('categories', c);
+  // Merchant names and other data snippets may be in a different language from the UI.
+  const langOf = (s) => (/[\u0590-\u05FF]/.test(s || '') ? 'he' : /[A-Za-z]/.test(s || '') ? 'en' : null);
+  const langAttr = (s) => { const l = langOf(s); return l && l !== I18N.lang ? l : null; };
+  const dataText = (tag, cls, text) => el(tag, { class: cls, text, lang: langAttr(text) });
 
   // ---------- DOM helpers ----------
   function el(tag, props = {}, children = []) {
@@ -201,14 +219,15 @@
     const bad = (up && !higherIsGood) || (down && higherIsGood);
     return el('span', { class: `delta${good ? ' good' : ''}${bad ? ' bad' : ''}` }, [
       up ? icon(ICONS.up) : down ? icon(ICONS.down) : null,
+      el('span', { class: 'sr-only', text: `${t(up ? 'kpi.delta_up' : down ? 'kpi.delta_down' : 'kpi.delta_same')} ` }),
       document.createTextNode(up || down ? pct(change) : '0%'),
     ]);
   }
 
   const kpiPrev = new Map();
-  function kpiTile({ label, value, iconName, tone, valueClass = '', foot }, i) {
-    const valueNode = el('div', { class: `kpi-value ${valueClass}`.trim(), dataset: { value: String(kpiPrev.get(label) ?? 0) } });
-    kpiPrev.set(label, value);
+  function kpiTile({ id, label, value, iconName, tone, valueClass = '', foot }, i) {
+    const valueNode = el('div', { class: `kpi-value ${valueClass}`.trim(), dataset: { value: String(kpiPrev.get(id) ?? 0) } });
+    kpiPrev.set(id, value);
     const tile = el('div', { class: 'kpi', dataset: { tone }, style: `--i:${i}` }, [
       el('div', { class: 'kpi-top' }, [el('span', { class: 'kpi-label', text: label }), el('span', { class: 'kpi-icon' }, icon(ICONS[iconName]))]),
       valueNode,
@@ -220,30 +239,30 @@
 
   function renderKpis(o) {
     const s = o.summary; const p = o.prevSummary;
-    const vs = () => el('span', { text: 'לעומת חודש קודם' });
+    const vs = () => el('span', { text: t('kpi.vs_prev') });
     const balanceAccounts = o.accounts.filter((a) => a.balance != null);
     const latest = balanceAccounts.map((a) => a.balanceDate || a.updatedAt).filter(Boolean).sort().at(-1);
     // Balance and pending are point-in-time figures (not month-scoped), so they get context, not a Δ%.
     const tiles = [
       {
-        label: 'יתרה בעו״ש', value: s.balance, iconName: 'wallet', tone: 'accent', valueClass: s.balance < 0 ? 'neg' : '',
-        foot: [el('span', { text: latest ? `עודכן ${relTime(latest)}` : 'אין נתוני יתרה' })],
+        id: 'balance', label: t('kpi.balance'), value: s.balance, iconName: 'wallet', tone: 'accent', valueClass: s.balance < 0 ? 'neg' : '',
+        foot: [el('span', { text: latest ? t('kpi.updated', { when: relTime(latest) }) : t('kpi.no_balance') })],
       },
       {
-        label: 'הכנסות החודש', value: s.income, iconName: 'in', tone: 'pos',
+        id: 'income', label: t('kpi.income'), value: s.income, iconName: 'in', tone: 'pos',
         foot: [deltaChip(s.income, p.income, { higherIsGood: true }), vs()],
       },
       {
-        label: 'הוצאות החודש', value: s.expense, iconName: 'out', tone: 'neg',
+        id: 'expense', label: t('kpi.expense'), value: s.expense, iconName: 'out', tone: 'neg',
         foot: [deltaChip(s.expense, p.expense, { higherIsGood: false }), vs()],
       },
       {
-        label: 'תזרים נטו', value: s.net, iconName: 'flow', tone: s.net >= 0 ? 'pos' : 'neg', valueClass: s.net >= 0 ? 'pos' : 'neg',
+        id: 'net', label: t('kpi.net'), value: s.net, iconName: 'flow', tone: s.net >= 0 ? 'pos' : 'neg', valueClass: s.net >= 0 ? 'pos' : 'neg',
         foot: [deltaChip(s.net, p.net, { higherIsGood: true }), vs()],
       },
       {
-        label: 'חיובים ממתינים', value: s.pending, iconName: 'clock', tone: 'warn',
-        foot: [el('span', { text: s.pending > 0 ? 'בכרטיסים, טרם נקלטו' : 'אין חיובים ממתינים' })],
+        id: 'pending', label: t('kpi.pending'), value: s.pending, iconName: 'clock', tone: 'warn',
+        foot: [el('span', { text: s.pending > 0 ? t('kpi.pending_some') : t('kpi.pending_none') })],
       },
     ];
     $('kpis').replaceChildren(...tiles.map((t, i) => kpiTile(t, i)));
@@ -271,12 +290,12 @@
       responsive: true,
       maintainAspectRatio: false,
       animation: reducedMotion ? false : { duration: 600, easing: 'easeOutCubic' },
-      locale: 'he-IL',
+      locale: I18N.locale,
       interaction: { mode: 'index', intersect: false },
       plugins: {
-        legend: { display: false, rtl: true, textDirection: 'rtl' },
+        legend: { display: false, rtl: isRtl(), textDirection: I18N.dir },
         tooltip: {
-          rtl: true, textDirection: 'rtl',
+          rtl: isRtl(), textDirection: I18N.dir,
           backgroundColor: css('--tooltip-bg'), titleColor: css('--tooltip-text'), bodyColor: css('--tooltip-text'),
           padding: 10, cornerRadius: 10, boxPadding: 4, usePointStyle: true,
           titleFont: { weight: '600' },
@@ -293,28 +312,41 @@
     return state.charts[key];
   }
 
-  function setEmpty(canvasId, empty, text = 'אין נתונים לחודש זה') {
+  function setEmpty(canvasId, empty, text = t('charts.no_data_month')) {
     const box = $(canvasId).parentElement;
     let msg = box.querySelector('.chart-empty');
+    if (msg && msg.textContent !== text) { msg.remove(); msg = null; }
     if (empty && !msg) { msg = el('div', { class: 'chart-empty', text }); box.append(msg); }
     if (!empty && msg) msg.remove();
   }
+
+  // Visually-hidden data table next to each chart, so the numbers are available without the canvas.
+  function renderDataTable(id, caption, head, rows) {
+    $(id).replaceChildren(
+      el('caption', { text: caption }),
+      el('thead', {}, el('tr', {}, head.map((h) => el('th', { scope: 'col', text: h })))),
+      el('tbody', {}, rows.map((r) => el('tr', {}, r.map((c, i) => el(i === 0 ? 'th' : 'td', { scope: i === 0 ? 'row' : null, text: c }))))),
+    );
+  }
+  // Charts read in the UI's direction: newest data at the inline end, value axis at the inline start.
+  const xReverse = () => isRtl();
+  const yPosition = () => (isRtl() ? 'right' : 'left');
 
   function renderMonthlyChart(o) {
     const pos = css('--pos'); const neg = css('--neg');
     // Phones get the last 6 months so the bars stay legible.
     const months = isMobile() ? o.monthly.slice(-6) : o.monthly;
-    const labels = months.map((r) => dtMonthShort.format(monthDate(r.month)));
+    const labels = months.map((r) => F.monthShort.format(monthDate(r.month)));
     const sel = months.map((r) => r.month === o.month);
-    $('monthly-sub').textContent = `${months.length} חודשים · לחצו על חודש למעבר`;
+    $('monthly-sub').textContent = t('charts.monthly_sub', { count: months.length });
     const base = chartBase();
     mountChart('monthly', 'chart-monthly', {
       type: 'bar',
       data: {
         labels,
         datasets: [
-          { label: 'הכנסות', data: months.map((r) => r.income), backgroundColor: sel.map((s) => (s ? pos : alpha(pos, 0.42))), hoverBackgroundColor: pos },
-          { label: 'הוצאות', data: months.map((r) => r.expense), backgroundColor: sel.map((s) => (s ? neg : alpha(neg, 0.42))), hoverBackgroundColor: neg },
+          { label: t('charts.income'), data: months.map((r) => r.income), backgroundColor: sel.map((s) => (s ? pos : alpha(pos, 0.42))), hoverBackgroundColor: pos },
+          { label: t('charts.expense'), data: months.map((r) => r.expense), backgroundColor: sel.map((s) => (s ? neg : alpha(neg, 0.42))), hoverBackgroundColor: neg },
         ].map((d) => ({ ...d, borderRadius: 6, borderSkipped: false, maxBarThickness: 22, categoryPercentage: 0.66, barPercentage: 0.86 })),
       },
       options: {
@@ -322,35 +354,43 @@
         onClick: (_e, els) => { if (els.length) goToMonth(months[els[0].index].month); },
         onHover: (e, els) => { e.native.target.style.cursor = els.length ? 'pointer' : 'default'; },
         scales: {
-          x: { reverse: true, grid: { display: false }, border: { display: false } },
-          y: { display: !months.every((r) => !r.income && !r.expense), position: 'right', beginAtZero: true, border: { display: false }, grid: { color: css('--grid') }, ticks: { callback: (v) => compact(v), maxTicksLimit: 5, padding: 8 } },
+          x: { reverse: xReverse(), grid: { display: false }, border: { display: false } },
+          y: { display: !months.every((r) => !r.income && !r.expense), position: yPosition(), beginAtZero: true, border: { display: false }, grid: { color: css('--grid') }, ticks: { callback: (v) => compact(v), maxTicksLimit: 5, padding: 8 } },
         },
         plugins: {
           ...base.plugins,
           tooltip: {
             ...base.plugins.tooltip,
             callbacks: {
-              title: (items) => dtMonthLong.format(monthDate(months[items[0].dataIndex].month)),
+              title: (items) => F.monthLong.format(monthDate(months[items[0].dataIndex].month)),
               label: (ctx) => ` ${ctx.dataset.label}: ${ils(ctx.parsed.y)}`,
               footer: (items) => {
                 const r = months[items[0].dataIndex];
-                return `נטו: ${ils(r.income - r.expense)}`;
+                return t('charts.net', { amount: ils(r.income - r.expense) });
               },
             },
           },
         },
       },
     });
-    setEmpty('chart-monthly', months.every((r) => !r.income && !r.expense), 'אין עדיין נתונים');
+    setEmpty('chart-monthly', months.every((r) => !r.income && !r.expense), t('charts.no_data'));
+    const cur = o.monthly.find((r) => r.month === o.month) || { income: 0, expense: 0 };
+    $('chart-monthly').setAttribute('aria-label', t('charts.monthly_summary', {
+      count: o.monthly.length, month: F.monthLong.format(monthDate(o.month)), income: ils(cur.income), expense: ils(cur.expense),
+    }));
+    renderDataTable('table-monthly', t('charts.table_monthly'),
+      [t('charts.col_month'), t('charts.col_income'), t('charts.col_expense'), t('charts.col_net')],
+      o.monthly.map((r) => [F.monthLong.format(monthDate(r.month)), ils(r.income), ils(r.expense), ils(r.income - r.expense)]));
   }
 
   function categoryGroups(cats) {
     if (cats.length <= MAX_CATS + 1) return cats.map((c) => ({ ...c, filterable: true }));
     const top = cats.slice(0, MAX_CATS).map((c) => ({ ...c, filterable: true }));
     const rest = cats.slice(MAX_CATS);
-    top.push({ category: 'שאר הקטגוריות', total: rest.reduce((a, c) => a + c.total, 0), count: rest.reduce((a, c) => a + c.count, 0), filterable: false });
+    top.push({ category: null, label: t('charts.other_categories'), total: rest.reduce((a, c) => a + c.total, 0), count: rest.reduce((a, c) => a + c.count, 0), filterable: false });
     return top;
   }
+  const groupName = (g) => g.label || catName(g.category);
 
   function renderCategoryChart(o) {
     const groups = categoryGroups(o.categories);
@@ -363,7 +403,7 @@
     mountChart('categories', 'chart-categories', {
       type: 'doughnut',
       data: {
-        labels: groups.map((g) => g.category),
+        labels: groups.map(groupName),
         datasets: [{
           data: groups.length ? groups.map((g) => g.total) : [1],
           backgroundColor: groups.length ? colors.map((c, i) => (active && groups[i].category !== active ? alpha(c, 0.3) : c)) : [css('--surface-3')],
@@ -387,9 +427,17 @@
       },
     });
 
+    const canvas = $('chart-categories');
+    canvas.setAttribute('aria-label', groups.length
+      ? t('charts.categories_summary', { total: ils(total), top: groups.slice(0, 3).map((g) => `${groupName(g)} ${ils(g.total)}`).join(', ') })
+      : t('charts.categories_summary_empty'));
+    renderDataTable('table-categories', t('charts.table_categories'),
+      [t('charts.col_category'), t('charts.col_amount'), t('charts.col_share')],
+      groups.map((g) => [groupName(g), ils(g.total), pct((g.total / total) * 100)]));
+
     const list = $('cat-list');
     if (!groups.length) {
-      list.replaceChildren(el('li', { class: 'empty empty-li', text: 'אין הוצאות בחודש זה' }));
+      list.replaceChildren(el('li', { class: 'empty empty-li', text: t('charts.no_expenses') }));
       return;
     }
     list.replaceChildren(...groups.map((g, i) => el('li', {}, el('button', {
@@ -397,11 +445,11 @@
       class: `cat-item${active === g.category ? ' active' : ''}`,
       disabled: !g.filterable,
       'aria-pressed': g.filterable ? String(active === g.category) : null,
-      title: g.filterable ? `סינון לפי ${g.category}` : null,
+      title: g.filterable ? t('charts.filter_by', { category: groupName(g) }) : null,
       onclick: () => g.filterable && toggleCategory(g.category),
     }, [
       el('i', { class: 'sw', style: `background:${colors[i]}` }),
-      el('span', { class: 'cat-name', text: g.category }),
+      el('span', { class: 'cat-name', text: groupName(g) }),
       el('span', { class: 'cat-amt', text: ils(g.total) }),
       el('span', { class: 'cat-pct', text: pct((g.total / total) * 100) }),
     ]))));
@@ -428,14 +476,15 @@
     const labels = Array.from({ length: len }, (_, i) => String(i + 1));
     const accent = css('--accent'); const muted = css('--muted-line');
     const base = chartBase();
-    $('cum-sub').textContent = `${dtMonthLong.format(monthDate(o.month))} מול ${dtMonthLong.format(monthDate(prevM))}`;
+    const curName = F.monthLong.format(monthDate(o.month)); const prevName = F.monthLong.format(monthDate(prevM));
+    $('cum-sub').textContent = t('charts.cumulative_vs', { cur: curName, prev: prevName });
     mountChart('daily', 'chart-daily', {
       type: 'line',
       data: {
         labels,
         datasets: [
           {
-            label: 'החודש', data: cur, borderColor: accent, borderWidth: 2.5, tension: 0.3, pointRadius: 0, pointHoverRadius: 4,
+            label: t('charts.this_month'), data: cur, borderColor: accent, borderWidth: 2.5, tension: 0.3, pointRadius: 0, pointHoverRadius: 4,
             pointBackgroundColor: accent, fill: 'origin',
             backgroundColor: (ctx) => {
               const { chart } = ctx; const area = chart.chartArea;
@@ -445,14 +494,14 @@
               return g;
             },
           },
-          { label: 'חודש קודם', data: prev, borderColor: muted, borderWidth: 2, borderDash: [5, 5], tension: 0.3, pointRadius: 0, pointHoverRadius: 3, pointBackgroundColor: muted, fill: false },
+          { label: t('charts.prev_month'), data: prev, borderColor: muted, borderWidth: 2, borderDash: [5, 5], tension: 0.3, pointRadius: 0, pointHoverRadius: 3, pointBackgroundColor: muted, fill: false },
         ],
       },
       options: {
         ...base,
         scales: {
-          x: { reverse: true, offset: false, grid: { display: false }, border: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 14, align: 'inner' } },
-          y: { display: Boolean(o.daily.length || o.prevDaily.length), position: 'right', beginAtZero: true, border: { display: false }, grid: { color: css('--grid') }, ticks: { callback: (v) => compact(v), maxTicksLimit: 5, padding: 8 } },
+          x: { reverse: xReverse(), offset: false, grid: { display: false }, border: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 14, align: 'inner' } },
+          y: { display: Boolean(o.daily.length || o.prevDaily.length), position: yPosition(), beginAtZero: true, border: { display: false }, grid: { color: css('--grid') }, ticks: { callback: (v) => compact(v), maxTicksLimit: 5, padding: 8 } },
         },
         plugins: {
           ...base.plugins,
@@ -460,7 +509,7 @@
             ...base.plugins.tooltip,
             filter: (item) => item.parsed.y != null,
             callbacks: {
-              title: (items) => `יום ${items[0].label} בחודש`,
+              title: (items) => t('charts.day_of_month', { day: items[0].label }),
               label: (ctx) => ` ${ctx.dataset.label}: ${ils(ctx.parsed.y)}`,
             },
           },
@@ -468,6 +517,11 @@
       },
     });
     setEmpty('chart-daily', !o.daily.length && !o.prevDaily.length);
+    const last = (arr) => arr.filter((v) => v != null).at(-1) ?? 0;
+    $('chart-daily').setAttribute('aria-label', t('charts.daily_summary', { cur: curName, curTotal: ils(last(cur)), prev: prevName, prevTotal: ils(last(prev)) }));
+    renderDataTable('table-daily', t('charts.table_daily'),
+      [t('charts.col_day'), curName, prevName],
+      labels.map((d, i) => [d, cur[i] == null ? '—' : ils(cur[i]), prev[i] == null ? '—' : ils(prev[i])]));
   }
 
   // Re-read colours when the OS theme flips.
@@ -485,22 +539,24 @@
   // ---------- accounts ----------
   function renderAccounts(o) {
     const list = $('accounts');
-    $('accounts-sub').textContent = o.accounts.length ? `${o.accounts.length} חשבונות מחוברים` : 'אין חשבונות';
+    $('accounts-sub').textContent = o.accounts.length ? t('accounts.count', { count: o.accounts.length }) : t('accounts.none');
     if (!o.accounts.length) {
-      list.replaceChildren(el('li', { class: 'empty empty-li', text: 'עוד לא סונכרנו חשבונות' }));
+      list.replaceChildren(el('li', { class: 'empty empty-li', text: t('accounts.empty') }));
       return;
     }
     list.replaceChildren(...o.accounts.map((a) => {
       const label = srcLabel(a.source);
       const last4 = String(a.accountNumber || '').slice(-4);
       const hasBal = a.balance != null;
+      // Default account labels are the server's (Hebrew) source names: show those translated.
+      const name = a.label && a.label !== state.sourceLabels[a.source] ? a.label : label;
       return el('li', { class: 'account' }, [
-        el('span', { class: 'acc-logo', dataset: { src: srcKey(a.source) }, text: label.replace(/^בנק\s+/, '').slice(0, 1) }),
+        el('span', { class: 'acc-logo', dataset: { src: srcKey(a.source) }, text: srcInitial(a.source), 'aria-hidden': 'true' }),
         el('div', { style: 'min-width:0' }, [
-          el('div', { class: 'acc-name', text: a.label || label }),
+          el('div', { class: 'acc-name', text: name, lang: langAttr(name) }),
           el('div', { class: 'acc-meta' }, [
             el('span', { text: label }),
-            last4 ? el('span', { text: '·' }) : null,
+            last4 ? el('span', { text: '·', 'aria-hidden': 'true' }) : null,
             last4 ? el('span', { class: 'last4', text: `•••• ${last4}` }) : null,
           ]),
         ]),
@@ -508,7 +564,7 @@
           ? el('span', { class: `acc-bal${a.balance < 0 ? ' neg' : ''}`, text: ils(a.balance) })
           : el('span', { class: 'acc-bal acc-spend' }, [
             el('span', { text: ils(a.monthSpend || 0) }),
-            el('small', { class: 'acc-spend-label', text: 'חיובים החודש' }),
+            el('small', { class: 'acc-spend-label', text: t('accounts.month_charges') }),
           ]),
       ]);
     }));
@@ -526,20 +582,21 @@
 
     const body = $('recurring-body');
     if (!items.length) {
-      body.replaceChildren(el('tr', {}, el('td', { colspan: '4', class: 'empty', text: 'לא זוהו עדיין תשלומים קבועים' })));
+      body.replaceChildren(el('tr', {}, el('td', { colspan: '4', class: 'empty', text: t('recurring.empty') })));
       return;
     }
     body.replaceChildren(...items.map((r) => {
-      const kind = el('span', { class: r.inactive ? 'badge inactive' : `badge k-${r.kind || 'recurring'}`, text: r.inactive ? 'לא פעיל' : (KIND_LABELS[r.kind] || 'חוזר') });
+      const kindKey = ['standing_order', 'subscription', 'income', 'recurring'].includes(r.kind) ? r.kind : 'recurring';
+      const kind = el('span', { class: r.inactive ? 'badge inactive' : `badge k-${r.kind || 'recurring'}`, text: r.inactive ? t('recurring.inactive') : I18N.term('kinds', kindKey) });
       return el('tr', { class: r.inactive ? 'inactive' : null }, [
         el('td', {}, [
-          el('div', { class: 'desc', text: r.description }),
+          dataText('div', 'desc', r.description),
           el('div', { class: 'meta' }, [
             el('span', { class: 'kind-inline' }, kind.cloneNode(true)),
             el('span', { class: 'src-pill' }, [el('i', { class: 'src-dot', dataset: { src: srcKey(r.source) } }), document.createTextNode(srcLabel(r.source))]),
-            el('span', { text: '·' }),
-            el('span', { text: `${CADENCE_LABELS[r.cadence] || r.cadence} · ${r.count} חיובים` }),
-            r.nextDate && !r.inactive ? el('span', { class: 'next-inline', text: `· הבא ${relDays(r.nextDate)}` }) : null,
+            el('span', { text: '·', 'aria-hidden': 'true' }),
+            el('span', { text: `${I18N.term('cadences', r.cadence) || ''} · ${t('recurring.charges', { count: r.count })}` }),
+            r.nextDate && !r.inactive ? el('span', { class: 'next-inline', text: `· ${t('recurring.next', { when: relDays(r.nextDate) })}` }) : null,
           ]),
         ]),
         el('td', { class: 'kind' }, kind),
@@ -556,40 +613,47 @@
   function renderSyncLog(o) {
     const list = $('synclog');
     if (!o.syncRuns.length) {
-      list.replaceChildren(el('li', { class: 'empty empty-li', text: 'עוד לא בוצע סנכרון' }));
+      list.replaceChildren(el('li', { class: 'empty empty-li', text: t('synclog.empty') }));
       return;
     }
-    list.replaceChildren(...o.syncRuns.map((r) => el('li', { class: 'run' }, [
-      el('span', { class: `run-icon ${r.ok ? 'ok' : 'err'}`, 'aria-label': r.ok ? 'הצליח' : 'נכשל' }, icon(r.ok ? ICONS.check : ICONS.x)),
-      el('div', { style: 'min-width:0' }, [
-        el('div', { class: 'run-title', text: r.label ? `${srcLabel(r.source)} · ${r.label}` : srcLabel(r.source) }),
-        r.ok
-          ? el('div', { class: 'run-new', text: r.newCount ? `${r.newCount} תנועות חדשות` : 'אין תנועות חדשות' })
-          : el('div', { class: 'run-err', text: r.error || 'שגיאה לא ידועה' }),
-      ]),
-      el('span', { class: 'run-time', title: dtFull.format(new Date(r.startedAt)), text: dtRunTime.format(new Date(r.startedAt)) }),
-    ])));
+    list.replaceChildren(...o.syncRuns.map((r) => {
+      const label = r.label && r.label !== state.sourceLabels[r.source] ? r.label : srcLabel(r.source);
+      const err = r.error || t('synclog.unknown_error');
+      return el('li', { class: 'run' }, [
+        el('span', { class: `run-icon ${r.ok ? 'ok' : 'err'}`, role: 'img', 'aria-label': r.ok ? t('synclog.ok') : t('synclog.failed') }, icon(r.ok ? ICONS.check : ICONS.x)),
+        el('div', { style: 'min-width:0' }, [
+          el('div', { class: 'run-title', text: r.label ? `${srcLabel(r.source)} · ${label}` : srcLabel(r.source) }),
+          r.ok
+            ? el('div', { class: 'run-new', text: r.newCount ? t('synclog.new', { count: r.newCount }) : t('synclog.none') })
+            : el('div', { class: 'run-err', text: err, lang: langAttr(err) }),
+        ]),
+        el('span', { class: 'run-time', title: F.full.format(new Date(r.startedAt)), text: F.runTime.format(new Date(r.startedAt)) }),
+      ]);
+    }));
   }
+
+  function setText(node, text) { if (node.textContent !== text) node.textContent = text; }
 
   function renderSyncStatus(o) {
     const dot = $('sync-dot'); const text = $('sync-text'); const btn = $('sync-btn');
     const last = o.syncRuns[0];
     if (o.syncing) {
       dot.className = 'dot busy';
-      text.textContent = 'מסנכרן…';
+      setText(text, t('sync.syncing'));
     } else if (last) {
       const batch = o.syncRuns.filter((r) => Math.abs(new Date(r.startedAt) - new Date(last.startedAt)) < 10 * 60 * 1000);
       const failed = batch.some((r) => !r.ok);
+      const when = relTime(last.finishedAt || last.startedAt);
       dot.className = `dot ${failed ? 'err' : 'ok'}`;
-      text.textContent = `${failed ? 'סנכרון חלקי' : 'סונכרן'} ${relTime(last.finishedAt || last.startedAt)}`;
-      $('sync-status').title = `סנכרון אחרון: ${dtFull.format(new Date(last.finishedAt || last.startedAt))}`;
+      setText(text, failed ? t('sync.partial', { when }) : t('sync.synced', { when }));
+      $('sync-status').title = t('sync.last', { when: F.full.format(new Date(last.finishedAt || last.startedAt)) });
     } else {
       dot.className = 'dot';
-      text.textContent = 'טרם סונכרן';
+      setText(text, t('sync.never'));
     }
     btn.classList.toggle('loading', Boolean(o.syncing));
     btn.disabled = Boolean(o.syncing) || !o.canSync;
-    btn.title = o.demo ? 'הסנכרון מושבת במצב הדגמה' : !o.canSync ? 'הסנכרון אינו זמין' : '';
+    btn.title = o.demo ? t('sync.disabled_demo') : !o.canSync ? t('sync.unavailable') : '';
     $('demo-banner').hidden = !o.demo;
   }
 
@@ -598,15 +662,15 @@
     btn.disabled = true; btn.classList.add('loading');
     try {
       await api('api/sync', { method: 'POST' });
-      toast('הסנכרון התחיל…');
+      toast(t('sync.started'));
     } catch (err) {
       if (err.status !== 409) {
-        toast(err.message || 'הסנכרון נכשל', true);
+        toast(err.status === 400 ? t('sync.unavailable') : t('sync.failed'), true);
         btn.classList.remove('loading');
         btn.disabled = !state.overview?.canSync;
         return;
       }
-      toast('סנכרון כבר רץ ברקע');
+      toast(t('sync.already'));
     }
     pollSync(true);
   }
@@ -626,7 +690,7 @@
         loadTransactions();
         if (announce) {
           const failed = o.syncRuns[0] && !o.syncRuns[0].ok;
-          toast(failed ? 'הסנכרון הסתיים עם שגיאות' : 'הסנכרון הושלם', failed);
+          toast(failed ? t('sync.done_errors') : t('sync.done'), failed);
         }
       } catch {
         pollSync(announce);
@@ -656,12 +720,12 @@
       applyOverview(o);
       if (o.syncing) pollSync(false);
     } catch (err) {
-      if (seq === state.seq.overview) toast(`שגיאה בטעינת הנתונים: ${err.message}`, true);
+      if (seq === state.seq.overview) toast(t('errors.load_overview', { msg: err.message }), true);
     }
   }
 
   function renderMonthNav() {
-    $('month-label').textContent = dtMonthLong.format(monthDate(state.month));
+    $('month-label').textContent = F.monthLong.format(monthDate(state.month));
     $('month-next').disabled = state.month >= currentMonth();
   }
 
@@ -685,7 +749,7 @@
     const sources = [...new Set(o.accounts.map((a) => a.source))];
     const list = sources.length ? sources : Object.keys(state.sourceLabels);
     const current = sel.value;
-    sel.replaceChildren(el('option', { value: '', text: 'כל המקורות' }), ...list.map((s) => el('option', { value: s, text: srcLabel(s) })));
+    sel.replaceChildren(el('option', { value: '', text: t('txns.all_sources') }), ...list.map((s) => el('option', { value: s, text: srcLabel(s) })));
     sel.value = list.includes(current) ? current : '';
   }
 
@@ -702,17 +766,34 @@
   function renderChips() {
     const chips = $('txn-chips');
     const c = state.txn.category;
-    chips.replaceChildren(...(c ? [el('button', { type: 'button', class: 'chip', title: 'הסרת סינון', onclick: () => toggleCategory(c) }, [
-      el('span', { text: `קטגוריה: ${c}` }), icon(ICONS.x),
+    chips.replaceChildren(...(c ? [el('button', { type: 'button', class: 'chip', title: t('txns.remove_filter'), onclick: () => toggleCategory(c) }, [
+      el('span', { text: t('txns.chip_category', { category: catName(c) }) }),
+      el('span', { class: 'sr-only', text: ` (${t('txns.remove_filter')})` }),
+      icon(ICONS.x),
     ])] : []));
+  }
+
+  function txnParams() {
+    const { from, to } = monthRange(state.month);
+    const params = new URLSearchParams({ from, to });
+    for (const k of ['q', 'direction', 'source', 'category']) if (state.txn[k]) params.set(k, state.txn[k]);
+    return params;
+  }
+
+  function updateExportLink() {
+    const params = txnParams();
+    params.set('lang', I18N.lang);
+    $('txn-export').href = `api/transactions.csv?${params}`;
+    $('txn-export').setAttribute('download', `dashbank-${state.month}.csv`);
   }
 
   async function loadTransactions() {
     const seq = ++state.seq.txn;
-    const { from, to } = monthRange(state.month);
-    const params = new URLSearchParams({ from, to, limit: String(PAGE_SIZE), offset: String(state.txn.offset) });
-    for (const k of ['q', 'direction', 'source', 'category']) if (state.txn[k]) params.set(k, state.txn[k]);
+    const params = txnParams();
+    params.set('limit', String(PAGE_SIZE));
+    params.set('offset', String(state.txn.offset));
     renderChips();
+    updateExportLink();
     const body = $('txn-list');
     body.classList.add('loading-rows');
     try {
@@ -721,7 +802,7 @@
       state.lastTxn = r;
       renderTransactions(r);
     } catch (err) {
-      if (seq === state.seq.txn) toast(`שגיאה בטעינת התנועות: ${err.message}`, true);
+      if (seq === state.seq.txn) toast(t('errors.load_txns', { msg: err.message }), true);
     } finally {
       if (seq === state.seq.txn) body.classList.remove('loading-rows');
     }
@@ -730,26 +811,26 @@
   function dayHeading(iso) {
     const d = parseDay(iso);
     const diff = Math.round((todayStart() - d) / 86400000);
-    if (diff === 0) return 'היום';
-    if (diff === 1) return 'אתמול';
-    return dtWeekday.format(d);
+    if (diff === 0) return t('txns.today');
+    if (diff === 1) return t('txns.yesterday');
+    return F.weekday.format(d);
   }
 
   function renderTransactions({ rows, total }) {
     const body = $('txn-list');
     const filtered = Boolean(state.txn.q || state.txn.direction || state.txn.source || state.txn.category);
-    $('txn-sub').textContent = `${total.toLocaleString('he-IL')} תנועות ב${dtMonthLong.format(monthDate(state.month))}${filtered ? ' (מסונן)' : ''}`;
+    $('txn-sub').textContent = `${t('txns.count', { count: total, month: F.monthLong.format(monthDate(state.month)) })}${filtered ? t('txns.filtered') : ''}`;
     if (!rows.length) {
-      body.replaceChildren(el('div', { class: 'empty', text: filtered ? 'אין תנועות שתואמות לסינון' : 'אין תנועות בחודש זה' }));
+      body.replaceChildren(el('div', { class: 'empty', text: filtered ? t('txns.empty_filtered') : t('txns.empty') }));
     } else {
       const groups = new Map();
-      for (const t of rows) {
-        const key = String(t.date).slice(0, 10);
+      for (const tx of rows) {
+        const key = String(tx.date).slice(0, 10);
         if (!groups.has(key)) groups.set(key, []);
-        groups.get(key).push(t);
+        groups.get(key).push(tx);
       }
       body.replaceChildren(...[...groups].map(([day, items]) => {
-        const net = items.reduce((a, t) => a + (Number(t.amount) || 0), 0);
+        const net = items.reduce((a, tx) => a + (Number(tx.amount) || 0), 0);
         return el('section', { class: 'day-group', role: 'listitem' }, [
           el('h3', { class: 'day-head' }, [
             el('span', { text: dayHeading(day) }),
@@ -761,75 +842,83 @@
     }
     const start = total ? state.txn.offset + 1 : 0;
     const end = Math.min(state.txn.offset + rows.length, total);
-    $('pager-info').textContent = total ? `${start.toLocaleString('he-IL')}–${end.toLocaleString('he-IL')} מתוך ${total.toLocaleString('he-IL')}` : '';
+    $('pager-info').textContent = total ? t('txns.pager', { start: fmtInt(start), end: fmtInt(end), total: fmtInt(total) }) : '';
     $('page-prev').disabled = state.txn.offset === 0;
     $('page-next').disabled = state.txn.offset + PAGE_SIZE >= total;
     $('pager').hidden = total <= PAGE_SIZE;
   }
 
-  const isForeign = (t) => t.originalCurrency && t.originalCurrency !== 'ILS' && t.originalCurrency !== t.currency;
+  const isForeign = (tx) => tx.originalCurrency && tx.originalCurrency !== 'ILS' && tx.originalCurrency !== tx.currency;
   const signedIls2 = (n) => `${n > 0 ? '+' : ''}${ils2(n)}`;
 
-  function txnRow(t) {
+  function txnRow(tx) {
     const meta = [];
-    if (t.category) meta.push(el('span', { class: 'meta-cat', text: t.category }));
-    meta.push(el('span', { class: 'src-pill src-inline' }, [el('i', { class: 'src-dot', dataset: { src: srcKey(t.source) } }), document.createTextNode(srcLabel(t.source))]));
-    if (t.status === 'pending') meta.push(el('span', { class: 'badge pending', text: 'ממתין' }));
-    if (t.installmentTotal > 1) meta.push(el('span', { class: 'badge inst', title: 'תשלומים', text: `${t.installmentNumber ?? '?'}/${t.installmentTotal}` }));
-    const amount = Number(t.amount) || 0;
-    const initial = (t.description || '?').trim().slice(0, 1);
-    return el('button', { type: 'button', class: 'txn-row', onclick: (e) => openSheet(t, e.currentTarget) }, [
-      el('span', { class: 'txn-avatar', dataset: { src: srcKey(t.source) }, text: initial, 'aria-hidden': 'true' }),
-      el('span', { class: 'txn-main' }, [el('span', { class: 'desc', text: t.description }), el('span', { class: 'meta' }, meta)]),
+    if (tx.category) meta.push(el('span', { class: 'meta-cat', text: catName(tx.category) }));
+    meta.push(el('span', { class: 'src-pill src-inline' }, [el('i', { class: 'src-dot', dataset: { src: srcKey(tx.source) } }), document.createTextNode(srcLabel(tx.source))]));
+    if (tx.status === 'pending') meta.push(el('span', { class: 'badge pending', text: t('txns.pending') }));
+    if (tx.installmentTotal > 1) meta.push(el('span', { class: 'badge inst', title: t('txns.installments'), text: `${tx.installmentNumber ?? '?'}/${tx.installmentTotal}` }));
+    const amount = Number(tx.amount) || 0;
+    const initial = (tx.description || '?').trim().slice(0, 1);
+    return el('button', { type: 'button', class: 'txn-row', 'aria-haspopup': 'dialog', onclick: (e) => openSheet(tx, e.currentTarget) }, [
+      el('span', { class: 'txn-avatar', dataset: { src: srcKey(tx.source) }, text: initial, 'aria-hidden': 'true' }),
+      el('span', { class: 'txn-main' }, [dataText('span', 'desc', tx.description), el('span', { class: 'meta' }, meta)]),
       el('span', { class: 'txn-cat' }, [
-        el('i', { class: 'cat-dot', style: `background:${state.catColor?.get(t.category) || 'var(--cat-9)'}` }),
-        document.createTextNode(t.category || 'ללא קטגוריה'),
+        el('i', { class: 'cat-dot', style: `background:${state.catColor?.get(tx.category) || 'var(--cat-9)'}` }),
+        document.createTextNode(tx.category ? catName(tx.category) : t('txns.no_category')),
       ]),
-      el('span', { class: 'txn-src' }, el('span', { class: 'src-pill' }, [el('i', { class: 'src-dot', dataset: { src: srcKey(t.source) } }), document.createTextNode(srcLabel(t.source))])),
+      el('span', { class: 'txn-src' }, el('span', { class: 'src-pill' }, [el('i', { class: 'src-dot', dataset: { src: srcKey(tx.source) } }), document.createTextNode(srcLabel(tx.source))])),
       el('span', { class: `txn-amt ${amount > 0 ? 'pos' : ''}` }, [
         el('span', { text: signedIls2(amount) }),
-        isForeign(t) ? el('span', { class: 'fx', text: fx(t.originalAmount, t.originalCurrency) }) : null,
+        isForeign(tx) ? el('span', { class: 'fx', text: fx(tx.originalAmount, tx.originalCurrency) }) : null,
       ]),
     ]);
   }
 
   // ---------- bottom sheet ----------
-  const sheet = { open: false, returnFocus: null };
+  const sheet = { open: false, returnFocus: null, txn: null };
 
   function detailRow(label, value, cls = '') {
     if (value == null || value === '') return null;
-    return el('div', { class: 'd-row' }, [el('dt', { text: label }), el('dd', { class: cls }, value)]);
+    return el('div', { class: 'd-row' }, [el('dt', { text: label }), el('dd', { class: cls, lang: typeof value === 'string' ? langAttr(value) : null }, value)]);
   }
 
-  function openSheet(t, from) {
-    const amount = Number(t.amount) || 0;
-    const acct = state.overview?.accounts.find((a) => a.source === t.source && a.accountNumber === t.accountNumber);
-    const last4 = String(t.accountNumber || '').slice(-4);
-    const body = $('sheet-body');
-    body.replaceChildren(
+  function renderSheetBody(tx) {
+    const amount = Number(tx.amount) || 0;
+    const acct = state.overview?.accounts.find((a) => a.source === tx.source && a.accountNumber === tx.accountNumber);
+    const acctLabel = acct?.label && acct.label !== state.sourceLabels[acct.source] ? acct.label : (acct ? srcLabel(acct.source) : '');
+    const last4 = String(tx.accountNumber || '').slice(-4);
+    $('sheet-body').replaceChildren(
       el('div', { class: 'sheet-hero' }, [
-        el('span', { class: 'txn-avatar lg', dataset: { src: srcKey(t.source) }, text: (t.description || '?').trim().slice(0, 1), 'aria-hidden': 'true' }),
-        el('h2', { id: 'sheet-title', class: 'sheet-title', text: t.description }),
+        el('span', { class: 'txn-avatar lg', dataset: { src: srcKey(tx.source) }, text: (tx.description || '?').trim().slice(0, 1), 'aria-hidden': 'true' }),
+        el('h2', { id: 'sheet-title', class: 'sheet-title', text: tx.description, lang: langAttr(tx.description) }),
         el('div', { class: `sheet-amount ${amount > 0 ? 'pos' : ''}`, text: signedIls2(amount) }),
-        isForeign(t) ? el('div', { class: 'sheet-fx', text: `סכום מקורי ${fx(t.originalAmount, t.originalCurrency)}` }) : null,
+        isForeign(tx) ? el('div', { class: 'sheet-fx', text: t('sheet.original_amount', { amount: fx(tx.originalAmount, tx.originalCurrency) }) }) : null,
         el('div', { class: 'sheet-badges' }, [
-          el('span', { class: `badge ${t.status === 'pending' ? 'pending' : 'done'}`, text: t.status === 'pending' ? 'ממתין לחיוב' : 'נקלט' }),
-          t.installmentTotal > 1 ? el('span', { class: 'badge inst', text: `תשלום ${t.installmentNumber ?? '?'} מתוך ${t.installmentTotal}` }) : null,
+          el('span', { class: `badge ${tx.status === 'pending' ? 'pending' : 'done'}`, text: tx.status === 'pending' ? t('sheet.pending') : t('sheet.completed') }),
+          tx.installmentTotal > 1 ? el('span', { class: 'badge inst', text: t('sheet.installment', { n: tx.installmentNumber ?? '?', total: tx.installmentTotal }) }) : null,
         ]),
       ]),
       el('dl', { class: 'details' }, [
-        detailRow('תאריך עסקה', dtLongDay.format(parseDay(t.date))),
-        detailRow('תאריך חיוב', t.processedDate ? dtLongDay.format(parseDay(t.processedDate)) : null),
-        detailRow('מקור', `${srcLabel(t.source)}${acct?.label ? ` · ${acct.label}` : ''}`),
-        detailRow('חשבון / כרטיס', last4 ? `•••• ${last4}` : null, 'ltr'),
-        detailRow('קטגוריה', t.category || 'ללא קטגוריה'),
-        detailRow('הערה', t.memo),
+        detailRow(t('sheet.date'), F.longDay.format(parseDay(tx.date))),
+        detailRow(t('sheet.processed'), tx.processedDate ? F.longDay.format(parseDay(tx.processedDate)) : null),
+        detailRow(t('sheet.source'), `${srcLabel(tx.source)}${acct?.label ? ` · ${acctLabel}` : ''}`),
+        detailRow(t('sheet.account'), last4 ? `•••• ${last4}` : null, 'ltr'),
+        detailRow(t('sheet.category'), tx.category ? catName(tx.category) : t('txns.no_category')),
+        detailRow(t('sheet.memo'), tx.memo),
       ]),
       el('div', { class: 'sheet-actions' }, [
-        t.category ? el('button', { type: 'button', class: 'btn btn-ghost', onclick: () => { closeSheet(); state.txn.category = ''; toggleCategory(t.category); } }, `כל ה${t.category}`) : null,
-        el('button', { type: 'button', class: 'btn btn-ghost', onclick: () => { closeSheet(); searchFor(t.description); } }, 'עסקאות דומות'),
+        tx.category ? el('button', { type: 'button', class: 'btn btn-ghost', onclick: () => { closeSheet(); state.txn.category = ''; toggleCategory(tx.category); } }, t('sheet.all_in_category', { category: catName(tx.category) })) : null,
+        el('button', { type: 'button', class: 'btn btn-ghost', onclick: () => { closeSheet(); searchFor(tx.description); } }, t('sheet.similar')),
       ]),
     );
+  }
+
+  // Everything outside the dialog is made inert while it is open (focus can't escape, AT ignores it).
+  const backgroundNodes = () => [...document.body.children].filter((n) => n.id !== 'sheet' && n.id !== 'sheet-backdrop' && n.tagName !== 'SCRIPT');
+
+  function openSheet(tx, from) {
+    sheet.txn = tx;
+    renderSheetBody(tx);
     sheet.returnFocus = from || document.activeElement;
     const s = $('sheet'); const bd = $('sheet-backdrop');
     s.hidden = false; bd.hidden = false;
@@ -838,6 +927,7 @@
     document.body.classList.add('sheet-open');
     s.classList.add('open'); bd.classList.add('open');
     sheet.open = true;
+    for (const n of backgroundNodes()) n.inert = true;
     $('sheet-close').focus({ preventScroll: true });
   }
 
@@ -848,6 +938,7 @@
     s.style.transform = '';
     s.classList.remove('open'); bd.classList.remove('open');
     document.body.classList.remove('sheet-open');
+    for (const n of backgroundNodes()) n.inert = false;
     const done = () => { if (!sheet.open) { s.hidden = true; bd.hidden = true; } };
     if (reducedMotion) done(); else setTimeout(done, 380);
     sheet.returnFocus?.focus?.({ preventScroll: true });
@@ -856,7 +947,19 @@
   function wireSheet() {
     $('sheet-close').addEventListener('click', closeSheet);
     $('sheet-backdrop').addEventListener('click', closeSheet);
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
+    document.addEventListener('keydown', (e) => {
+      if (!sheet.open) return;
+      if (e.key === 'Escape') { e.preventDefault(); closeSheet(); return; }
+      if (e.key !== 'Tab') return;
+      // Focus trap (backup for browsers without `inert`).
+      const box = $('sheet');
+      const items = [...box.querySelectorAll('button, [href], input, select, [tabindex]:not([tabindex="-1"])')].filter((n) => !n.disabled && n.offsetParent !== null);
+      if (!items.length) return;
+      const first = items[0]; const last = items[items.length - 1];
+      const inside = box.contains(document.activeElement);
+      if (e.shiftKey && (document.activeElement === first || !inside)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (document.activeElement === last || !inside)) { e.preventDefault(); first.focus(); }
+    });
     // Swipe down to dismiss (from the grabber, or anywhere while the body is scrolled to top).
     const s = $('sheet');
     let startY = 0; let lastY = 0; let lastT = 0; let velocity = 0; let dragging = false;
@@ -897,18 +1000,20 @@
   }
 
   // ---------- tabs (mobile) ----------
-  const TAB_TITLES = { overview: 'סקירה', txns: 'עסקאות', recurring: 'קבועים', accounts: 'חשבונות' };
+  const TABS = ['overview', 'txns', 'recurring', 'accounts'];
   const mobileMq = window.matchMedia('(max-width: 768px)');
   const isMobile = () => mobileMq.matches;
 
   function setTab(tab, { instant = false } = {}) {
-    if (!TAB_TITLES[tab]) tab = 'overview';
+    if (!TABS.includes(tab)) tab = 'overview';
     const changed = document.body.dataset.tab !== tab;
     document.body.dataset.tab = tab;
-    $('large-title-text').textContent = TAB_TITLES[tab];
-    $('nav-title').textContent = TAB_TITLES[tab];
+    $('large-title-text').textContent = t(`tabs.${tab}`);
+    $('nav-title').textContent = t(`tabs.${tab}`);
     for (const b of document.querySelectorAll('.tab')) {
-      if (b.dataset.tab === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+      const on = b.dataset.tab === tab;
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
     }
     try { history.replaceState(null, '', `${location.pathname}${location.search}#${tab}`); } catch { /* ignore */ }
     if (!changed || !isMobile()) return;
@@ -934,6 +1039,8 @@
 
   function wireChrome() {
     for (const b of document.querySelectorAll('.tab')) b.addEventListener('click', () => setTab(b.dataset.tab));
+    // Tabs: arrow keys move + activate (direction-aware), Home/End jump.
+    rovingKeys($('tabbar'), '.tab', (b) => setTab(b.dataset.tab));
     mobileMq.addEventListener('change', () => { placeMonthNav(); measureTopbar(); if (state.overview) renderCharts(state.overview); });
     window.addEventListener('resize', measureTopbar);
     placeMonthNav();
@@ -1005,13 +1112,69 @@
 
   function registerSw() {
     if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => { /* non-fatal */ });
+    const register = () => navigator.serviceWorker.register('sw.js').catch(() => { /* non-fatal */ });
+    if (document.readyState === 'complete') register();
+    else window.addEventListener('load', register);
+  }
+
+  // ---------- keyboard: roving focus for tablist / radiogroup ----------
+  // Arrow keys follow the reading direction: in RTL, ArrowLeft moves to the next item.
+  function rovingKeys(container, selector, activate) {
+    container.addEventListener('keydown', (e) => {
+      const items = [...container.querySelectorAll(selector)];
+      const i = items.indexOf(document.activeElement);
+      if (i < 0) return;
+      const next = isRtl() ? 'ArrowLeft' : 'ArrowRight';
+      const prev = isRtl() ? 'ArrowRight' : 'ArrowLeft';
+      let j = null;
+      if (e.key === next || e.key === 'ArrowDown') j = (i + 1) % items.length;
+      else if (e.key === prev || e.key === 'ArrowUp') j = (i - 1 + items.length) % items.length;
+      else if (e.key === 'Home') j = 0;
+      else if (e.key === 'End') j = items.length - 1;
+      if (j == null) return;
+      e.preventDefault();
+      items[j].focus();
+      activate(items[j]);
     });
+  }
+
+  function setDirection(b) {
+    for (const o of document.querySelectorAll('.segmented button')) {
+      o.setAttribute('aria-checked', String(o === b));
+      o.tabIndex = o === b ? 0 : -1;
+    }
+    state.txn.direction = b.dataset.dir;
+    state.txn.offset = 0;
+    loadTransactions();
+  }
+
+  // ---------- language ----------
+  function renderLangButton() {
+    const target = t('lang.toggle_target');
+    $('lang-short').lang = target;
+    $('lang-name').lang = target;
+  }
+
+  function onLanguageChange() {
+    buildFormatters();
+    renderLangButton();
+    setTab(document.body.dataset.tab, { instant: true });
+    renderMonthNav();
+    if (state.overview) applyOverview(state.overview);
+    else renderSkeletons();
+    if (state.lastTxn) renderTransactions(state.lastTxn);
+    renderChips();
+    updateExportLink();
+    if (sheet.open && sheet.txn) renderSheetBody(sheet.txn);
+    measureTopbar();
   }
 
   // ---------- wiring ----------
   function wire() {
+    $('lang-btn').addEventListener('click', async () => {
+      try { await I18N.toggle(); } catch { /* keep current language */ }
+    });
+    document.addEventListener('i18n:change', onLanguageChange);
     $('month-prev').addEventListener('click', () => goToMonth(shiftMonth(state.month, -1)));
     $('month-next').addEventListener('click', () => goToMonth(shiftMonth(state.month, 1)));
     $('sync-btn').addEventListener('click', startSync);
@@ -1025,14 +1188,8 @@
         loadTransactions();
       }, 300);
     });
-    for (const b of document.querySelectorAll('.segmented button')) {
-      b.addEventListener('click', () => {
-        for (const o of document.querySelectorAll('.segmented button')) o.setAttribute('aria-checked', String(o === b));
-        state.txn.direction = b.dataset.dir;
-        state.txn.offset = 0;
-        loadTransactions();
-      });
-    }
+    for (const b of document.querySelectorAll('.segmented button')) b.addEventListener('click', () => setDirection(b));
+    rovingKeys(document.querySelector('.segmented'), 'button', setDirection);
     $('txn-source').addEventListener('change', (e) => {
       state.txn.source = e.target.value;
       state.txn.offset = 0;
@@ -1056,14 +1213,18 @@
 
   state.month = initialMonth();
   renderSkeletons();
-  renderMonthNav();
-  wire();
-  wireSheet();
-  wireChrome();
-  wirePullToRefresh();
-  registerSw();
-  window.addEventListener('offline', () => setOffline(true));
-  window.addEventListener('online', () => { setOffline(false); loadOverview(); loadTransactions(); });
-  loadOverview();
-  loadTransactions();
+  I18N.ready.then(() => {
+    buildFormatters();
+    renderLangButton();
+    renderMonthNav();
+    wire();
+    wireSheet();
+    wireChrome();
+    wirePullToRefresh();
+    registerSw();
+    window.addEventListener('offline', () => setOffline(true));
+    window.addEventListener('online', () => { setOffline(false); loadOverview(); loadTransactions(); });
+    loadOverview();
+    loadTransactions();
+  });
 })();

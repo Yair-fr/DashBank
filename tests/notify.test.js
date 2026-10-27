@@ -131,3 +131,53 @@ test('notifySummary and sendRaw', async () => {
   assert.equal((await n.notifySummary([], 'x')).sent, 0);
   assert.equal((await n.sendRaw('t', 'b')).sent, 1);
 });
+
+test('formatTxn privacy mode: title has amount + category only, no merchant anywhere', () => {
+  const f = formatTxn(base, { privacy: true });
+  assert.equal(f.title, '💳 ₪123.45 · מזון');
+  assert.doesNotMatch(f.title + f.body, /שופרסל/);
+  const g = formatTxn({ ...base, category: null }, { privacy: true });
+  assert.equal(g.title, '💳 ₪123.45 · ללא קטגוריה');
+});
+
+test('formatTxn English: translated category, source, pending, installments', () => {
+  const f = formatTxn({ ...base, category: 'מזון וסופר', installmentNumber: 2, installmentTotal: 3, status: 'pending' }, { lang: 'en' });
+  assert.equal(f.title, '💳 ₪123.45 · שופרסל');
+  assert.match(f.body, /Isracard • 4567/);
+  assert.match(f.body, /Groceries/);
+  assert.match(f.body, /Installment 2\/3/);
+  assert.match(f.body, /Pending/);
+  assert.doesNotMatch(f.body, /[\u0590-\u05FF]/);
+  const p = formatTxn({ ...base, category: 'מזון וסופר' }, { lang: 'en', privacy: true });
+  assert.equal(p.title, '💳 ₪123.45 · Groceries');
+});
+
+test('formatSummary English + privacy hides merchants', () => {
+  const t = formatSummary([{ ...base, category: 'מזון וסופר' }, { ...base, amount: 500, description: 'משכורת', category: 'משכורת' }], { lang: 'en', privacy: true });
+  assert.match(t, /^2 new transactions/);
+  assert.match(t, /Expenses: ₪123\.45/);
+  assert.match(t, /Income: ₪500\.00/);
+  assert.match(t, /• Groceries -₪123\.45/);
+  assert.match(t, /• Salary \+₪500\.00/);
+  assert.doesNotMatch(t, /שופרסל|משכורת/);
+});
+
+test('notifier applies NOTIFY_LANG / NOTIFY_PRIVACY from config', async () => {
+  const fetch = fakeFetch();
+  const n = createNotifier(cfg({ ntfy: NTFY, notifyLang: 'en', notifyPrivacy: true }), { fetch });
+  await n.notifyTxn(base);
+  const sent = JSON.stringify(fetch.calls[0].init);
+  assert.doesNotMatch(sent, /שופרסל/);
+});
+
+test('loadConfig reads NOTIFY_LANG, NOTIFY_PRIVACY and ACCESSIBILITY_CONTACT', async () => {
+  const { loadConfig } = await import('../src/config.js');
+  const c = loadConfig({ NOTIFY_LANG: 'en', NOTIFY_PRIVACY: '1', ACCESSIBILITY_CONTACT: ' me@x.io ' }, []);
+  assert.equal(c.notifyLang, 'en');
+  assert.equal(c.notifyPrivacy, true);
+  assert.equal(c.accessibilityContact, 'me@x.io');
+  const d = loadConfig({ NOTIFY_LANG: 'fr' }, []);
+  assert.equal(d.notifyLang, 'he');
+  assert.equal(d.notifyPrivacy, false);
+  assert.equal(d.accessibilityContact, '');
+});
