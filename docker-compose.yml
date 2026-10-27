@@ -1,0 +1,12 @@
+services:
+  dashbank:
+    build: .
+    container_name: dashbank
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/data
+    ports:
+      # Published on the host loopback only. Reach it from your phone via `tailscale serve`.
+      - "127.0.0.1:3456:3456"
+    shm_size: "512mb" # Chromium needs more than Docker's 64MB default

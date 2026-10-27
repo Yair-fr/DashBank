@@ -14,7 +14,8 @@
     "setup": "node --disable-warning=ExperimentalWarning scripts/setup.js",
     "sync": "node --disable-warning=ExperimentalWarning src/index.js --once",
     "test-notify": "node --disable-warning=ExperimentalWarning scripts/test-notify.js",
-    "test": "node --disable-warning=ExperimentalWarning --test \"tests/**/*.test.js\""
+    "test": "node --disable-warning=ExperimentalWarning --test \"tests/**/*.test.js\"",
+    "autostart": "node --disable-warning=ExperimentalWarning scripts/autostart.js"
   },
   "dependencies": {
     "chart.js": "^4.5.0",

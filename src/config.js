@@ -14,7 +14,8 @@ export function loadConfig(env = process.env, argv = process.argv) {
   return {
     root: ROOT,
     port: int(env.PORT, 3456),
-    host: '127.0.0.1',
+    // Loopback only by default. Docker sets HOST=0.0.0.0 inside the container and publishes on 127.0.0.1.
+    host: env.HOST || '127.0.0.1',
     syncIntervalMinutes: Math.max(10, int(env.SYNC_INTERVAL_MINUTES, 30)),
     monthsBack: Math.min(12, Math.max(1, int(env.MONTHS_BACK, 6))),
     notifyMinAmount: int(env.NOTIFY_MIN_AMOUNT, 0),
