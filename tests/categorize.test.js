@@ -16,7 +16,7 @@ test('salary and income', () => {
   assert.equal(categorize('העברה מיוסי', { amount: 500 }), 'העברות');
   assert.equal(categorize('ביטוח לאומי', { amount: 1200 }), 'קצבאות');
   assert.equal(categorize('זיכוי כלשהו', { amount: 50 }), 'הכנסה');
-  assert.equal(categorize('שכר דירה', { amount: -4000 }), 'אחר');
+  assert.equal(categorize('שכר דירה', { amount: -4000 }), 'דיור'); // outgoing rent is housing, never salary
 });
 
 test('representative merchants', () => {
@@ -50,4 +50,8 @@ test('fallback and exports', () => {
   assert.equal(categorize(''), 'אחר');
   assert.ok(CATEGORIES.includes('אחר') && CATEGORIES.includes(CARD_SETTLEMENT_CATEGORY));
   assert.ok(RULES.every((r) => r.category && Array.isArray(r.patterns)));
+});
+
+test('rent goes to housing, not generic standing orders', () => {
+  assert.equal(categorize('הוראת קבע - שכר דירה', { source: 'hapoalim', amount: -5200 }), 'דיור');
 });

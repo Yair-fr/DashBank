@@ -105,11 +105,12 @@ export function createApp({ db, syncer = null, config = {} }) {
     if (!range) throw new BadRequest('invalid month (expected YYYY-MM)');
     const prevRange = monthRange(prevMonth(month));
     const [y, m] = month.split('-').map(Number);
+    const spend = db.accountSpend(range);
     res.json({
       month,
       summary: db.summary(range),
       prevSummary: db.summary(prevRange),
-      accounts: db.listAccounts(),
+      accounts: db.listAccounts().map((a) => ({ ...a, monthSpend: spend[a.id] ?? 0 })),
       monthly: db.monthly(12, new Date(Date.UTC(y, m - 1, 15))),
       categories: db.categories(range),
       daily: db.daily(range),

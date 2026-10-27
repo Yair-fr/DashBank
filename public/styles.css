@@ -297,6 +297,8 @@ body.sheet-open { overflow: hidden; }
 .acc-bal { font-weight: 700; font-variant-numeric: tabular-nums; direction: ltr; font-size: 15px; }
 .acc-bal.neg { color: var(--neg); }
 .acc-bal.none { color: var(--text-3); font-weight: 500; }
+.acc-spend { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.acc-spend-label { font-size: 11px; font-weight: 500; color: var(--text-3); direction: rtl; }
 
 /* Tables */
 .table-wrap { overflow-x: auto; margin: 0 -20px; padding: 0 20px; }

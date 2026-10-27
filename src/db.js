@@ -155,7 +155,8 @@ export function openDb(dbPath) {
     const params = {};
     const where = rangeWhere(filter, params);
     if (filter.source) { where.push('source = :source'); params.source = filter.source; }
-    if (filter.category) { where.push('category = :category'); params.category = filter.category; }
+    if (filter.category === 'אחר') where.push("(category IS NULL OR category = 'אחר')");
+    else if (filter.category) { where.push('category = :category'); params.category = filter.category; }
     if (filter.q) { where.push('(description LIKE :q OR memo LIKE :q)'); params.q = `%${filter.q}%`; }
     if (filter.direction === 'in') where.push('amount > 0');
     if (filter.direction === 'out') where.push('amount < 0');
@@ -210,6 +211,16 @@ export function openDb(dbPath) {
       FROM transactions WHERE ${where.join(' AND ')} GROUP BY 1 ORDER BY total DESC`).all(params).map(plain);
   }
 
+  /** Expense per account for a range (used to show monthly card spend). Keyed by `${source}:${accountNumber}`. */
+  function accountSpend(range = {}) {
+    const params = { settle: CARD_SETTLEMENT_CATEGORY };
+    const where = rangeWhere(range, params);
+    where.push('amount < 0', "COALESCE(category, '') != :settle");
+    const rows = db.prepare(`SELECT source || ':' || account_number AS id, ROUND(SUM(-amount), 2) AS spend
+      FROM transactions WHERE ${where.join(' AND ')} GROUP BY 1`).all(params);
+    return Object.fromEntries(rows.map((r) => [r.id, r.spend]));
+  }
+
   /** Daily expense totals for a range (for cumulative spend charts). */
   function daily(range = {}) {
     const params = { settle: CARD_SETTLEMENT_CATEGORY };
@@ -257,7 +268,7 @@ export function openDb(dbPath) {
 
   return {
     raw: db, upsertAccount, insertTransactions, hasTransactions, listAccounts, listTransactions,
-    summary, monthly, categories, daily, allTransactionsSince, saveRecurring, listRecurring,
+    summary, monthly, categories, accountSpend, daily, allTransactionsSince, saveRecurring, listRecurring,
     logSyncRun, lastSyncRuns, close: () => db.close(),
   };
 }

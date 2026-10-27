@@ -504,7 +504,12 @@
             last4 ? el('span', { class: 'last4', text: `•••• ${last4}` }) : null,
           ]),
         ]),
-        el('span', { class: `acc-bal${hasBal ? (a.balance < 0 ? ' neg' : '') : ' none'}`, text: hasBal ? ils(a.balance) : 'כרטיס' }),
+        hasBal
+          ? el('span', { class: `acc-bal${a.balance < 0 ? ' neg' : ''}`, text: ils(a.balance) })
+          : el('span', { class: 'acc-bal acc-spend' }, [
+            el('span', { text: ils(a.monthSpend || 0) }),
+            el('small', { class: 'acc-spend-label', text: 'חיובים החודש' }),
+          ]),
       ]);
     }));
   }

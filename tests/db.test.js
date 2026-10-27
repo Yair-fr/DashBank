@@ -61,3 +61,16 @@ test('recurring and sync runs round-trip', () => {
   db.logSyncRun({ startedAt: new Date().toISOString(), source: 'max', ok: false, error: 'INVALID_PASSWORD' });
   assert.equal(db.lastSyncRuns()[0].ok, false);
 });
+
+test("category filter 'אחר' includes uncategorised rows; accountSpend excludes settlements", () => {
+  const db = openDb(':memory:');
+  const mk = (o, src = 'max') => normalizeTxn(raw(o), { source: src, accountNumber: '7' });
+  db.insertTransactions([
+    { ...mk({ identifier: 1, chargedAmount: -30 }), category: null },
+    { ...mk({ identifier: 2, chargedAmount: -20 }), category: 'אחר' },
+    { ...mk({ identifier: 3, chargedAmount: -50 }), category: 'מזון' },
+    { ...mk({ identifier: 4, chargedAmount: -900 }, 'hapoalim'), category: CARD_SETTLEMENT_CATEGORY },
+  ]);
+  assert.equal(db.listTransactions({ category: 'אחר' }).total, 2);
+  assert.deepEqual(db.accountSpend({ from: '2026-10-01', to: '2026-11-01' }), { 'max:7': 100 });
+});
