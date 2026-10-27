@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'node:path';
+import { computeInsights } from './insights.js';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { log } from './log.js';
@@ -151,16 +152,21 @@ export function createApp({ db, syncer = null, config = {} }) {
     const prevRange = monthRange(prevMonth(month));
     const [y, m] = month.split('-').map(Number);
     const spend = db.accountSpend(range);
+    const summary = db.summary(range);
+    const categories = db.categories(range);
+    const prevCategories = db.categories(prevRange);
+    const recurring = db.listRecurring();
     res.json({
       month,
-      summary: db.summary(range),
+      summary,
       prevSummary: db.summary(prevRange),
       accounts: db.listAccounts().map((a) => ({ ...a, monthSpend: spend[a.id] ?? 0 })),
       monthly: db.monthly(12, new Date(Date.UTC(y, m - 1, 15))),
-      categories: db.categories(range),
+      categories,
+      insights: computeInsights({ month, summary, categories, prevCategories, recurring, topMerchants: db.topMerchants(range, 5) }),
       daily: db.daily(range),
       prevDaily: db.daily(prevRange),
-      recurring: db.listRecurring(),
+      recurring,
       syncRuns: db.lastSyncRuns(10),
       demo: Boolean(config.demo),
       syncing: Boolean(syncer?.isRunning?.()),

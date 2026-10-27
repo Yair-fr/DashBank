@@ -283,5 +283,26 @@
     "עמלות": "Fees",
     "הוראות קבע": "Standing orders",
     "אחר": "Other"
+  },
+  "insights": {
+    "title": "Insights",
+    "sub": "Calculated from the selected month",
+    "savings_rate": "Savings rate",
+    "savings_rate_hint": "Net cash flow ÷ income",
+    "avg_daily": "Average daily spend",
+    "projected": "Projected month-end spend",
+    "projected_hint": "At the current daily pace",
+    "fixed_share": "Fixed costs share",
+    "fixed_hint": "Monthly standing orders and subscriptions",
+    "top_category": "Biggest category",
+    "none": "Not enough data",
+    "merchants": "Largest merchants",
+    "merchant_count": "{n} charges",
+    "increases": "Sharp increases vs. last month",
+    "increases_none": "Nothing unusual this month",
+    "share_of_spend": "of spending",
+    "was_now": "was {from}, now {to}",
+    "avg_daily_hint": "Spending ÷ days so far",
+    "merchant_one": "1 charge"
   }
 }

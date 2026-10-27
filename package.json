@@ -17,7 +17,8 @@
     "test-notify": "node --disable-warning=ExperimentalWarning scripts/test-notify.js",
     "test": "node --disable-warning=ExperimentalWarning --test \"tests/**/*.test.js\"",
     "autostart": "node --disable-warning=ExperimentalWarning scripts/autostart.js",
-    "screenshots": "node --disable-warning=ExperimentalWarning scripts/screenshots.mjs"
+    "screenshots": "node --disable-warning=ExperimentalWarning scripts/screenshots.mjs",
+    "backup": "node --disable-warning=ExperimentalWarning scripts/backup.js"
   },
   "dependencies": {
     "chart.js": "^4.5.0",

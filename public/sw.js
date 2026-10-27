@@ -3,7 +3,7 @@
  * - /api/* GET: network-first, falling back to the last cached response, which is
  *   marked with an `X-DashBank-Offline: 1` header so the page can show an offline pill.
  * All URLs are relative to the SW scope so the app works behind a reverse proxy. */
-const VERSION = 'v2';
+const VERSION = 'v5';
 const SHELL_CACHE = `dashbank-shell-${VERSION}`;
 const API_CACHE = 'dashbank-api';
 const SHELL = [

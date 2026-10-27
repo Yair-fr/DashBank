@@ -124,6 +124,26 @@
         <table class="sr-only" id="table-daily"></table>
       </article>
 
+      <article class="card span-12 insights" data-tab="overview" style="--i:4" aria-labelledby="insights-title">
+        <header class="card-head">
+          <div>
+            <h2 id="insights-title" data-i18n="insights.title">תובנות</h2>
+            <p class="sub" data-i18n="insights.sub">מדדים מחושבים מהחודש הנבחר</p>
+          </div>
+        </header>
+        <div class="insight-grid" id="insight-metrics"></div>
+        <div class="insight-lists">
+          <section aria-labelledby="insight-merchants-title">
+            <h3 id="insight-merchants-title" data-i18n="insights.merchants">העסקים הגדולים ביותר</h3>
+            <ol class="insight-list" id="insight-merchants"></ol>
+          </section>
+          <section aria-labelledby="insight-increases-title">
+            <h3 id="insight-increases-title" data-i18n="insights.increases">עלייה חדה לעומת החודש הקודם</h3>
+            <ul class="insight-list" id="insight-increases"></ul>
+          </section>
+        </div>
+      </article>
+
       <article class="card span-4" data-tab="accounts" style="--i:4">
         <header class="card-head">
           <div>

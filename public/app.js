@@ -698,11 +698,47 @@
     }, POLL_MS);
   }
 
+  // ---------- insights (BI) ----------
+  function renderInsights(o) {
+    const ins = o.insights;
+    if (!ins) return;
+    const na = t('insights.none');
+    const metric = (label, value, hint) => el('div', { class: 'insight-metric' }, [
+      el('span', { class: 'insight-label', text: label }),
+      el('strong', { class: 'insight-value num', text: value }),
+      el('span', { class: 'insight-hint', text: hint }),
+    ]);
+    $('insight-metrics').replaceChildren(
+      metric(t('insights.savings_rate'), ins.savingsRate == null ? na : `${ins.savingsRate}%`, t('insights.savings_rate_hint')),
+      metric(t('insights.avg_daily'), ils(ins.avgDailySpend), t('insights.avg_daily_hint')),
+      metric(t('insights.projected'), ins.projectedSpend == null ? '—' : ils(ins.projectedSpend), t('insights.projected_hint')),
+      metric(t('insights.fixed_share'), ins.fixedShare == null ? na : `${ins.fixedShare}%`, `${ils(ins.fixedMonthly)} · ${t('insights.fixed_hint')}`),
+      metric(t('insights.top_category'), ins.topCategory ? catName(ins.topCategory.category) : na, ins.topCategory ? `${ins.topCategory.share ?? 0}% ${t('insights.share_of_spend')}` : ''),
+    );
+    const merchants = ins.topMerchants || [];
+    $('insight-merchants').replaceChildren(...(merchants.length
+      ? merchants.map((m) => el('li', {}, [
+        el('span', { class: 'insight-name', text: m.description }),
+        el('span', { class: 'insight-amt num', text: ils(m.total) }),
+        el('span', { class: 'insight-hint', text: m.count === 1 ? t('insights.merchant_one') : t('insights.merchant_count', { n: m.count }) }),
+      ]))
+      : [el('li', { class: 'empty', text: na })]));
+    const incs = ins.increases || [];
+    $('insight-increases').replaceChildren(...(incs.length
+      ? incs.map((c) => el('li', {}, [
+        el('span', { class: 'insight-name', text: catName(c.category) }),
+        el('span', { class: 'insight-amt num', text: `+${pct(c.changePct)}` }),
+        el('span', { class: 'insight-hint', text: t('insights.was_now', { from: ils(c.before), to: ils(c.total) }) }),
+      ]))
+      : [el('li', { class: 'empty', text: t('insights.increases_none') })]));
+  }
+
   // ---------- overview ----------
   function applyOverview(o) {
     state.overview = o;
     state.sourceLabels = o.sourceLabels || {};
     renderKpis(o);
+    renderInsights(o);
     renderCharts(o);
     renderAccounts(o);
     renderRecurring(o);

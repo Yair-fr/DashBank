@@ -211,6 +211,16 @@ export function openDb(dbPath) {
       FROM transactions WHERE ${where.join(' AND ')} GROUP BY 1 ORDER BY total DESC`).all(params).map(plain);
   }
 
+  /** Largest outgoing merchants for a range (by total spent). */
+  function topMerchants(range = {}, limit = 5) {
+    const params = { settle: CARD_SETTLEMENT_CATEGORY, limit: Math.min(Math.max(Number(limit) || 5, 1), 20) };
+    const where = rangeWhere(range, params);
+    where.push('amount < 0', "COALESCE(category, '') != :settle");
+    return db.prepare(`SELECT description, ROUND(SUM(-amount), 2) AS total, COUNT(*) AS count
+      FROM transactions WHERE ${where.join(' AND ')}
+      GROUP BY description ORDER BY total DESC LIMIT :limit`).all(params).map(plain);
+  }
+
   /** Expense per account for a range (used to show monthly card spend). Keyed by `${source}:${accountNumber}`. */
   function accountSpend(range = {}) {
     const params = { settle: CARD_SETTLEMENT_CATEGORY };
@@ -268,7 +278,7 @@ export function openDb(dbPath) {
 
   return {
     raw: db, upsertAccount, insertTransactions, hasTransactions, listAccounts, listTransactions,
-    summary, monthly, categories, accountSpend, daily, allTransactionsSince, saveRecurring, listRecurring,
+    summary, monthly, categories, topMerchants, accountSpend, daily, allTransactionsSince, saveRecurring, listRecurring,
     logSyncRun, lastSyncRuns, close: () => db.close(),
   };
 }
