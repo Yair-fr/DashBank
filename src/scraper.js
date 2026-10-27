@@ -17,6 +17,19 @@ function redact(message, credentials = {}) {
   return out;
 }
 
+// Human-readable Hebrew explanations for israeli-bank-scrapers error types.
+export const ERROR_MESSAGES_HE = {
+  INVALID_PASSWORD: 'סיסמה שגויה — עדכן אותה ב-npm run setup',
+  CHANGE_PASSWORD: 'המוסד דורש להחליף סיסמה — היכנס ידנית לאתר',
+  ACCOUNT_BLOCKED: 'החשבון חסום — היכנס ידנית לאתר',
+  TIMEOUT: 'האתר לא הגיב בזמן — ננסה שוב בסנכרון הבא',
+  TWO_FACTOR_RETRIEVER_MISSING: 'המוסד דורש קוד אימות (OTP) — לא נתמך בכניסה אוטומטית',
+  GENERIC: 'שגיאה כללית בסנכרון — ננסה שוב בסנכרון הבא',
+  GENERAL_ERROR: 'שגיאה כללית בסנכרון — ננסה שוב בסנכרון הבא',
+};
+
+export const describeError = (errorType, fallback) => ERROR_MESSAGES_HE[errorType] || fallback || ERROR_MESSAGES_HE.GENERIC;
+
 /**
  * Scrape one vault account. Never throws.
  * returns { ok, accounts: [{ accountNumber, balance, txns }], error?, errorType? }
@@ -25,6 +38,8 @@ export async function scrapeAccount(account, {
   startDate, createScraper = defaultCreateScraper, showBrowser = false, timeoutMs = 120000, failureDir = null,
 } = {}) {
   const options = { companyId: account.companyId, startDate, combineInstallments: false, showBrowser, verbose: false };
+  // Containers (Docker) run Chromium without a user namespace sandbox.
+  if (process.env.DASHBANK_CHROMIUM_NO_SANDBOX === '1') options.args = ['--no-sandbox', '--disable-dev-shm-usage'];
   if (failureDir) {
     try { fs.mkdirSync(failureDir, { recursive: true }); } catch { /* screenshot is best-effort */ }
     options.storeFailureScreenShotPath = path.join(failureDir, `${account.companyId}-${Date.now()}.png`);

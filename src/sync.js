@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { scrapeAccount } from './scraper.js';
+import { scrapeAccount, describeError } from './scraper.js';
 import { normalizeTxn } from './normalize.js';
 import { categorize } from './categorize.js';
 import { detectRecurring } from './recurring.js';
@@ -51,7 +51,7 @@ export function createSyncer({ db, config, getAccounts, scrape = scrapeAccount, 
     if (!res?.ok) {
       const error = res?.error || res?.errorType || 'scrape failed';
       db.logSyncRun({ startedAt, source, label, ok: false, newCount: 0, error });
-      if (notifier) await safely('notifyError', () => notifier.notifyError(label, res?.errorType || error));
+      if (notifier) await safely('notifyError', () => notifier.notifyError(label, describeError(res?.errorType, error)));
       return { label, ok: false, newCount: 0, error };
     }
 
