@@ -180,6 +180,7 @@ Unattended start needs `DASHBANK_PASSPHRASE` in `.env`, because nobody is there 
 | Find a transaction | **Transactions** tab: search by text, filter by income/expense/source |
 | Drill into a category | Click a slice in the category chart to filter the transaction list |
 | See details of a charge | Tap a transaction to open its detail sheet (date, charge date, card, installments, original currency) |
+| Review spending insights | **Overview** tab, *Insights* card: savings rate, projected month-end spend, fixed-cost share, largest merchants, sharp category increases |
 | Review fixed costs | **Recurring** tab: standing orders, subscriptions, recurring income, and the next expected date |
 | Sync immediately | The **Sync now** button, or pull down to refresh on mobile |
 | One-off sync from the terminal | `npm run sync` |
@@ -195,8 +196,21 @@ Unattended start needs `DASHBANK_PASSPHRASE` in `.env`, because nobody is there 
 | `npm run test-notify` | Send a test notification |
 | `npm run autostart` | Start at login (`-- --remove` to undo) |
 | `npm run auth-setup` | Create the dashboard login (password + authenticator app) |
+| `npm run backup` | Save a timestamped backup of the database and vault to `backups/` |
 | `npm run screenshots` | Regenerate `docs/screenshots/` (requires Playwright) |
 | `npm test` | Run the test suite |
+
+## Backup and restore
+
+```bash
+npm run backup
+```
+
+Creates `backups/<date-time>/` with a consistent snapshot of `dashbank.db` and the encrypted `vault.enc`. It's safe to run while DashBank is running.
+
+- **Store copies off the PC**, such as on an encrypted USB drive. The database is **not** encrypted, so keep backups private.
+- **Keep the vault passphrase separate** from the backup. Without it the vault can't be opened.
+- **To restore:** stop DashBank, copy the files back into `data/`, then run `npm start`.
 
 ## Phone access (Android app)
 
