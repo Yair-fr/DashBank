@@ -4,3 +4,4 @@ data/
 *.log
 screenshots/failures/
 .superpowers/
+.claude/worktrees/
