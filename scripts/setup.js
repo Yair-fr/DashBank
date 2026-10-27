@@ -1,36 +1,16 @@
 import 'dotenv/config';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
-import readline from 'node:readline/promises';
 import { loadConfig } from '../src/config.js';
 import { readVault, writeVault } from '../src/vault.js';
 import { SOURCE_LABELS } from '../src/normalize.js';
+import { createPrompt } from '../src/prompt.js';
 
 const COMPANIES = ['hapoalim', 'isracard', 'visaCal', 'max', 'amex', 'leumi', 'discount', 'mizrahi'];
 const HIDDEN = /password|pass|card6Digits|otp/i;
 
 const config = loadConfig();
-let muted = false;
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: process.stdin.isTTY });
-const origWrite = rl._writeToOutput?.bind(rl);
-if (origWrite) {
-  rl._writeToOutput = (s) => { if (!muted) origWrite(s); };
-}
-
-async function ask(q) {
-  return (await rl.question(q)).trim();
-}
-
-async function askHidden(q) {
-  process.stdout.write(q);
-  muted = true;
-  try {
-    return (await rl.question('')).trim();
-  } finally {
-    muted = false;
-    process.stdout.write('\n');
-  }
-}
+const { ask, askHidden, close } = createPrompt();
 
 async function main() {
   console.log('DashBank - הגדרת כספת פרטי גישה\n');
@@ -82,5 +62,5 @@ try {
   console.error(e.message);
   process.exitCode = 1;
 } finally {
-  rl.close();
+  close();
 }
