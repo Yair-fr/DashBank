@@ -30,3 +30,17 @@ test('askHidden returns the answer without echoing it', async () => {
   assert.ok(s.written().includes('pass: '));
   assert.ok(!s.written().includes('hunter22'));
 });
+
+test('piped input: lines arriving before the question are not lost', async () => {
+  const { PassThrough } = await import('node:stream');
+  const input = new PassThrough();
+  const output = new PassThrough();
+  const p = createPrompt({ input, output, terminal: false });
+  input.end('first\nsecret\nthird\n');
+  await new Promise((r) => setImmediate(r));
+  assert.equal(await p.ask('a? '), 'first');
+  assert.equal(await p.askHidden('b? '), 'secret');
+  assert.equal(await p.ask('c? '), 'third');
+  await assert.rejects(p.ask('d? '), /input closed/);
+  p.close();
+});

@@ -13,7 +13,23 @@ export function createPrompt({ input = process.stdin, output = process.stdout, t
   const origWrite = rl._writeToOutput.bind(rl);
   rl._writeToOutput = (s) => { if (!muted) origWrite(s); };
 
-  const question = (q) => new Promise((resolve) => rl.question(q, resolve));
+  // Lines are queued instead of using rl.question(): with piped (non-TTY) stdin, readline
+  // emits all lines at once and question() would drop the ones that arrive early.
+  const lines = [];
+  const waiters = [];
+  let closed = false;
+  rl.on('line', (line) => (waiters.length ? waiters.shift().resolve(line) : lines.push(line)));
+  rl.on('close', () => {
+    closed = true;
+    while (waiters.length) waiters.shift().reject(new Error('input closed'));
+  });
+
+  const question = (q) => {
+    if (q) origWrite(q);
+    if (lines.length) return Promise.resolve(lines.shift());
+    if (closed) return Promise.reject(new Error('input closed'));
+    return new Promise((resolve, reject) => waiters.push({ resolve, reject }));
+  };
 
   return {
     async ask(q) {
